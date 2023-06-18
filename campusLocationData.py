@@ -1,9 +1,29 @@
 from openpyxl import workbook, load_workbook
+import undetected_chromedriver as uc
+import ssl
+import bs4
+import time
+import random
 
-wb_uasys = load_workbook(r"File Location")
-wb_data_grab = load_workbook(r"File Location")
-ws_uasys = wb_uasys["Name of Worksheet"]
-ws_data_grab = wb_data_grab["Name of Worksheet"]
+wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Illinois Educational Institutions 2023-05-26.xlsx")
+wb_data_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\AccreditationData.xlsx")
+wb_nces_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Data_3-14-2023---623.xlsx")
+ws_uasys = wb_uasys["All Illinois Institutions"]
+ws_data_grab = wb_data_grab["InstituteCampuses"]
+ws_nces_grab = wb_nces_grab["Data_3-14-2023---623"]
+
+# If CAMPUS_LOCATION_ID is blank then assign the cell AutoGen
+for cell in ws_uasys['AK']:
+    try:
+        if cell.value is None:
+            ws_uasys['AK' + str(cell.row)].value = "AutoGen"
+    except AttributeError:
+        print('Cell is read only!')
+    except TypeError:
+        print('Cell is read only!')
+    except:
+        print('Unknown error')
+
 # Get CAMP_OFFICIAL_INSTITUTION_NAME CAMP_OPED_ID and CAMP_IPED_ID from LocationName OpeId and IpedsUnitIds
 for cell in ws_uasys['AP']:
     organization_name = str(cell.value)
@@ -21,6 +41,7 @@ for cell in ws_uasys['AP']:
             # ws_uasys['C' + str(cell.row)].value = GOV_DAPID
             ws_uasys['AM' + str(cell.row)].value = CAMP_OPED_ID
             ws_uasys['AN' + str(cell.row)].value = CAMP_IPED_ID
+
 # Get CAMP_PO_BOX_LINE and CAMP_PhoneNumberFull from CAMP_OFFICIAL_INSTITUTION_NAME against LocationName fields
 for cell in ws_uasys['AP']:
     organization_name = str(cell.value)
@@ -70,7 +91,8 @@ for cell in ws_uasys['AP']:
                 CAMP_ADDRESS_LINE_2 = temp_LINE_2.upper()
                 CAMP_PO_BOX_LINE = temp_POBOX.strip('.')
                 CAMP_MUNICIPALITY = temp_MUNI.upper()
-                CAMP_POSTAL_CODE = temp_PCODE.strip('TX')
+                # Change state abbreviation between states
+                CAMP_POSTAL_CODE = temp_PCODE.strip('IL')
 
                 ws_uasys['AT' + str(cell.row)].value = CAMP_ADDRESS_LINE_2
                 ws_uasys['AU' + str(cell.row)].value = CAMP_PO_BOX_LINE
@@ -81,15 +103,87 @@ for cell in ws_uasys['AP']:
                 ws_uasys['AU' + str(cell.row)].value = 'NULL'
                 ws_uasys['AV' + str(cell.row)].value = 'NULL'
                 ws_uasys['AY' + str(cell.row)].value = 'NULL'
+            except TypeError:
+                ws_uasys['AT' + str(cell.row)].value = 'NULL'
+                ws_uasys['AU' + str(cell.row)].value = 'NULL'
+                ws_uasys['AV' + str(cell.row)].value = 'NULL'
+                ws_uasys['AY' + str(cell.row)].value = 'NULL'
+            except:
+                ws_uasys['AT' + str(cell.row)].value = 'NULL'
+                ws_uasys['AU' + str(cell.row)].value = 'NULL'
+                ws_uasys['AV' + str(cell.row)].value = 'NULL'
+                ws_uasys['AY' + str(cell.row)].value = 'NULL'
 
             ws_uasys['AZ' + str(cell.row)].value = CAMP_PhoneNumberFull
+            # not sure if this is working
+            if ws_uasys['AZ' + str(cell.row)].value is None:
+                print('No phone number from Accreditation Database : Searching')
+                for look in ws_nces_grab['B']:
+                    nces_institution = str(look.value)
+                    if nces_institution.upper() == organization_name.upper():
+                        CAMP_PhoneNumberFull = str(ws_nces_grab['L' + str(grab.row)].value)
+                        ws_uasys['AZ' + str(cell.row)].value = CAMP_PhoneNumberFull
+# Get INST_ESTABLISHED_DATE for PRIMARY_INSTITUTION_NAME from Google search
+print('Looking up Institution established dates.........')
+for cell in ws_uasys['AP']:
+    PRIMARY_INSTITUTION_NAME = str(cell.value).upper()
+    if "BARBER" or "BEAUTY" or "HAIR" or "SALON" in PRIMARY_INSTITUTION_NAME is False:
+        try:
+            cell_prev = int(cell.row) - 1
+            if cell_prev != 0 and PRIMARY_INSTITUTION_NAME != ws_uasys['U' + str(cell_prev)].value.upper():
+                print(PRIMARY_INSTITUTION_NAME + ' was founded:')
+                if ws_uasys['AF' + str(cell.row)].value is None:
+                    ssl._create_default_https_context = ssl._create_unverified_context
+                    chrome_options = uc.ChromeOptions()
 
-            # if CAMP_PhoneNumberFull == "":
-            #     print('No phone number from Accreditation Database : Searching')
-            #     # code for google search will go here
-            # else:
-            #     ws_uasys['BA' + str(cell.row)].value = CAMP_PhoneNumberFull
-            #
-            # ws_uasys['AV' + str(cell.row)].value = address_grab
+                    url = 'https://google.com/search?q=' + '"' + str(PRIMARY_INSTITUTION_NAME) + '"' + ' / Founded'
+                    driver = uc.Chrome(options=chrome_options)
+                    driver.get(url)
+                    wait = random.randrange(1, 10)
+                    time.sleep(wait)
+                    request_result = driver.page_source
+                    driver.quit()
+                    web_data = bs4.BeautifulSoup(request_result, "html5lib")
+                    try:
+                        DATE = web_data.find('div', class_='Z0LcW t2b5Cf').text
+                        INST_ESTABLISHED_DATE = DATE
+                        print(INST_ESTABLISHED_DATE)
+                        ws_uasys['AF' + str(cell.row)].value = str(INST_ESTABLISHED_DATE) + '-01-01'
+                        # change this save location between states
+                        wb_uasys.save(
+                            r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy TexasEducationalInstitutionsDatabase.xlsx")
+                    except AttributeError:
+                        print("----------------------------------")
+                        print('NoneType for: ' + str(cell.value))
+                    except TypeError:
+                        print('NoneType')
+                    except:
+                        print('Unknown error')
+        except TypeError:
+            print('That was a merged or empty cell skipping......')
+        except AttributeError:
+            print('Cell is read only!')
+        except:
+            print('Unknown error')
+# Check to see if campus is inactive/closed according to NCES database
+for cell in ws_uasys['AP']:
+    organization_name = str(cell.value)
+    for look in ws_nces_grab['B']:
+        nces_institution = str(look.value)
+        if nces_institution.upper() == organization_name.upper():
+            institution_closed = ws_nces_grab['W' + str(look.row)].value
+            if institution_closed != '-2':
+                ws_uasys['BD' + str(cell.row)].value = institution_closed
+# If CAMPUS_RECORD_SOURCE is blank then assign the cell N/A
+for cell in ws_uasys['BE']:
+    try:
+        if cell.value is None:
+            ws_uasys['BE' + str(cell.row)].value = "N/A"
+    except AttributeError:
+        print('Cell is read only!')
+    except TypeError:
+        print('Cell is read only!')
+    except:
+        print('Unknown error')
 print('Done!')
-wb_uasys.save(r"File Location")
+wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Illinois Educational Institutions 2023-05-26.xlsx")

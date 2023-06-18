@@ -1,9 +1,13 @@
+# Future: Code in automatic copy of UASYS database (excel), so user doesn't have too manually.
+# Then compare against hardcopy for changes.
 from openpyxl import workbook, load_workbook
 
-wb_uasys = load_workbook(r"File Location")
-wb_data_grab = load_workbook(r"File Location")
-ws_uasys = wb_uasys["Name of Worksheet"]
-ws_data_grab = wb_data_grab["Name of Worksheet"]
+wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Illinois Educational Institutions 2023-05-26.xlsx")
+wb_data_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\AccreditationData.xlsx")
+wb_nces_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Data_3-14-2023---623.xlsx")
+ws_uasys = wb_uasys["All Illinois Institutions"]
+ws_data_grab = wb_data_grab["InstituteCampuses"]
+ws_nces_grab = wb_nces_grab["Data_3-14-2023---623"]
 # If GOVERNING_ORGANIZATION_ID is blank then assign the cell AutoGen
 for cell in ws_uasys['A']:
     try:
@@ -11,8 +15,12 @@ for cell in ws_uasys['A']:
             ws_uasys['A' + str(cell.row)].value = "AutoGen"
     except AttributeError:
         print(cell + ' is read only!')
-
-# Get primary institution name and compare it against cells in additional sites location name, if match: access Parent
+    except TypeError:
+        print('Cell is read only!')
+    except:
+        print('Unknown error')
+# Get primary institution name and compare it against cells in additional sites location name,
+# if match: access Parent
 # Name Cell and return cell data to populate Governing Org name of same row as primary institution name
 for cell in ws_uasys['U']:
     institute_name = str(cell.value)
@@ -87,11 +95,6 @@ for cell in ws_uasys['E']:
                     temp_POBOX = temp_PCODE
                     temp_PCODE = 'NULL'
 
-                # if temp_PCODE.startswith('N/'):
-                #     temp_PCODE = temp_MUNI
-                #     temp_MUNI = temp_POBOX
-                #     temp_POBOX = "N/A"
-
                 if not temp_LINE_2.startswith('Suite'):
                     temp_MUNI = temp_LINE_2
                     temp_LINE_2 = 'N/A'
@@ -101,7 +104,8 @@ for cell in ws_uasys['E']:
                 GOV_ADDRESS_LINE_2 = temp_LINE_2.upper()
                 GOV_PO_BOX_LINE = temp_POBOX.strip('.')
                 GOV_MUNICIPALITY = temp_MUNI.upper()
-                GOV_POSTAL_CODE = temp_PCODE.strip('TX')
+                # Change state abbreviation between states
+                GOV_POSTAL_CODE = temp_PCODE.strip('IL')
 
                 ws_uasys['F' + str(cell.row)].value = GOV_ADDRESS_LINE_1
                 ws_uasys['G' + str(cell.row)].value = GOV_ADDRESS_LINE_2
@@ -114,14 +118,24 @@ for cell in ws_uasys['E']:
                 ws_uasys['H' + str(cell.row)].value = 'NULL'
                 ws_uasys['I' + str(cell.row)].value = 'NULL'
                 ws_uasys['L' + str(cell.row)].value = 'NULL'
+            except:
+                ws_uasys['F' + str(cell.row)].value = 'NULL'
+                ws_uasys['G' + str(cell.row)].value = 'NULL'
+                ws_uasys['H' + str(cell.row)].value = 'NULL'
+                ws_uasys['I' + str(cell.row)].value = 'NULL'
+                ws_uasys['L' + str(cell.row)].value = 'NULL'
 # If GOV_STATE_REGION_SHORT is blank then assign worksheet state
 for cell in ws_uasys['J']:
     try:
         if cell.value is None:
             # change state to workbook state
-            ws_uasys['J' + str(cell.row)].value = "TX"
+            ws_uasys['J' + str(cell.row)].value = "IL"
     except AttributeError:
         print('Cell is read only!')
+    except TypeError:
+        print('Cell is read only!')
+    except:
+        print('Unknown error')
 # If GOV_COUNTRY_CODE is blank then assign USA
 for cell in ws_uasys['K']:
     try:
@@ -129,6 +143,10 @@ for cell in ws_uasys['K']:
             ws_uasys['K' + str(cell.row)].value = "USA"
     except AttributeError:
         print('Cell is read only!')
+    except TypeError:
+        print('Cell is read only!')
+    except:
+        print('Unknown error')
 # Get GOV_PhoneNumberFull
 for cell in ws_uasys['E']:
     organization_name = str(cell.value)
@@ -138,5 +156,34 @@ for cell in ws_uasys['E']:
         if location_name.upper() == organization_name.upper():
             phoneNumber_grab = str(ws_data_grab['I' + str(grab.row)].value)
             ws_uasys['M' + str(cell.row)].value = phoneNumber_grab
+
+            if ws_uasys['M' + str(cell.row)].value is None:
+                print('No phone number from Accreditation Database : Searching')
+                for look in ws_nces_grab['B']:
+                    nces_institution = str(look.value)
+                    if nces_institution.upper() == organization_name.upper():
+                        phoneNumber_grab = str(ws_nces_grab['L' + str(grab.row)].value)
+                        ws_uasys['M' + str(cell.row)].value = phoneNumber_grab
+# Check to see if GOV_ORG is inactive/closed according to NCES database
+for cell in ws_uasys['E']:
+    organization_name = str(cell.value)
+    for look in ws_nces_grab['B']:
+        nces_institution = str(look.value)
+        if nces_institution.upper() == organization_name.upper():
+            institution_closed = ws_nces_grab['W' + str(look.row)].value
+            if institution_closed != '-2':
+                ws_uasys['O' + str(cell.row)].value = institution_closed
+# If GOV_RECORD_SOURCE is blank then assign the cell N/A
+for cell in ws_uasys['P']:
+    try:
+        if cell.value is None:
+            ws_uasys['P' + str(cell.row)].value = "N/A"
+    except AttributeError:
+        print('Cell is read only!')
+    except TypeError:
+        print('Cell is read only!')
+    except:
+        print('Unknown error')
+
 print('Done!')
-wb_uasys.save(r"File Location")
+wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Illinois Educational Institutions 2023-05-26.xlsx")
