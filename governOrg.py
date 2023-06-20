@@ -1,11 +1,11 @@
-# Future: Code in automatic copy of UASYS database (excel), so user doesn't have too manually.
-# Then compare against hardcopy for changes.
 from openpyxl import workbook, load_workbook
 
-wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Illinois Educational Institutions 2023-05-26.xlsx")
+# Change Add .xlsx
+wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Missouri Educational Institutions 2023-05-26.xlsx")
 wb_data_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\AccreditationData.xlsx")
 wb_nces_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Data_3-14-2023---623.xlsx")
-ws_uasys = wb_uasys["All Illinois Institutions"]
+# Change
+ws_uasys = wb_uasys["All Missouri Institutions"]
 ws_data_grab = wb_data_grab["InstituteCampuses"]
 ws_nces_grab = wb_nces_grab["Data_3-14-2023---623"]
 # If GOVERNING_ORGANIZATION_ID is blank then assign the cell AutoGen
@@ -105,7 +105,7 @@ for cell in ws_uasys['E']:
                 GOV_PO_BOX_LINE = temp_POBOX.strip('.')
                 GOV_MUNICIPALITY = temp_MUNI.upper()
                 # Change state abbreviation between states
-                GOV_POSTAL_CODE = temp_PCODE.strip('IL')
+                GOV_POSTAL_CODE = temp_PCODE.strip('MO')
 
                 ws_uasys['F' + str(cell.row)].value = GOV_ADDRESS_LINE_1
                 ws_uasys['G' + str(cell.row)].value = GOV_ADDRESS_LINE_2
@@ -129,7 +129,7 @@ for cell in ws_uasys['J']:
     try:
         if cell.value is None:
             # change state to workbook state
-            ws_uasys['J' + str(cell.row)].value = "IL"
+            ws_uasys['J' + str(cell.row)].value = "MO"
     except AttributeError:
         print('Cell is read only!')
     except TypeError:
@@ -171,7 +171,8 @@ for cell in ws_uasys['E']:
         nces_institution = str(look.value)
         if nces_institution.upper() == organization_name.upper():
             institution_closed = ws_nces_grab['W' + str(look.row)].value
-            if institution_closed != '-2':
+            found_two = str(institution_closed).find('-2')
+            if found_two < 0:
                 ws_uasys['O' + str(cell.row)].value = institution_closed
 # If GOV_RECORD_SOURCE is blank then assign the cell N/A
 for cell in ws_uasys['P']:
@@ -186,4 +187,5 @@ for cell in ws_uasys['P']:
         print('Unknown error')
 
 print('Done!')
-wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Illinois Educational Institutions 2023-05-26.xlsx")
+# Change
+wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Missouri Educational Institutions 2023-05-26.xlsx")

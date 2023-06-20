@@ -5,10 +5,12 @@ import bs4
 import time
 import random
 
-wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Illinois Educational Institutions 2023-05-26.xlsx")
+# Change Add .xlsx
+wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Missouri Educational Institutions 2023-05-26.xlsx")
 wb_data_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\AccreditationData.xlsx")
 wb_nces_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Data_3-14-2023---623.xlsx")
-ws_uasys = wb_uasys["All Illinois Institutions"]
+# Change
+ws_uasys = wb_uasys["All Missouri Institutions"]
 ws_data_grab = wb_data_grab["InstituteCampuses"]
 ws_nces_grab = wb_nces_grab["Data_3-14-2023---623"]
 
@@ -92,7 +94,7 @@ for cell in ws_uasys['AP']:
                 CAMP_PO_BOX_LINE = temp_POBOX.strip('.')
                 CAMP_MUNICIPALITY = temp_MUNI.upper()
                 # Change state abbreviation between states
-                CAMP_POSTAL_CODE = temp_PCODE.strip('IL')
+                CAMP_POSTAL_CODE = temp_PCODE.strip('MO')
 
                 ws_uasys['AT' + str(cell.row)].value = CAMP_ADDRESS_LINE_2
                 ws_uasys['AU' + str(cell.row)].value = CAMP_PO_BOX_LINE
@@ -115,14 +117,18 @@ for cell in ws_uasys['AP']:
                 ws_uasys['AY' + str(cell.row)].value = 'NULL'
 
             ws_uasys['AZ' + str(cell.row)].value = CAMP_PhoneNumberFull
-            # not sure if this is working
-            if ws_uasys['AZ' + str(cell.row)].value is None:
-                print('No phone number from Accreditation Database : Searching')
-                for look in ws_nces_grab['B']:
-                    nces_institution = str(look.value)
-                    if nces_institution.upper() == organization_name.upper():
-                        CAMP_PhoneNumberFull = str(ws_nces_grab['L' + str(grab.row)].value)
-                        ws_uasys['AZ' + str(cell.row)].value = CAMP_PhoneNumberFull
+# Checking NCES for phonenumber if none is present
+for cell in ws_uasys['AQ']:
+    campus_name = str(cell.value)
+    for check in ws_uasys['AZ']:
+        if check.value is None:
+            print('No phone number from Accreditation Database : Searching')
+            for look in ws_nces_grab['B']:
+                nces_institution = str(look.value)
+                if nces_institution.upper() == campus_name.upper():
+                    print('Found a phone number number!')
+                    CAMP_PhoneNumberFull = str(ws_nces_grab['L' + str(look.row)].value)
+                    ws_uasys['AZ' + str(cell.row)].value = CAMP_PhoneNumberFull
 # Get INST_ESTABLISHED_DATE for PRIMARY_INSTITUTION_NAME from Google search
 print('Looking up Institution established dates.........')
 for cell in ws_uasys['AP']:
@@ -151,7 +157,7 @@ for cell in ws_uasys['AP']:
                         ws_uasys['AF' + str(cell.row)].value = str(INST_ESTABLISHED_DATE) + '-01-01'
                         # change this save location between states
                         wb_uasys.save(
-                            r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy TexasEducationalInstitutionsDatabase.xlsx")
+                            r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Illinois Educational Institutions 2023-05-26.xlsx")
                     except AttributeError:
                         print("----------------------------------")
                         print('NoneType for: ' + str(cell.value))
@@ -172,7 +178,8 @@ for cell in ws_uasys['AP']:
         nces_institution = str(look.value)
         if nces_institution.upper() == organization_name.upper():
             institution_closed = ws_nces_grab['W' + str(look.row)].value
-            if institution_closed != '-2':
+            found_two = str(institution_closed).find('-2')
+            if found_two < 0:
                 ws_uasys['BD' + str(cell.row)].value = institution_closed
 # If CAMPUS_RECORD_SOURCE is blank then assign the cell N/A
 for cell in ws_uasys['BE']:
@@ -186,4 +193,5 @@ for cell in ws_uasys['BE']:
     except:
         print('Unknown error')
 print('Done!')
-wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Illinois Educational Institutions 2023-05-26.xlsx")
+# Change
+wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Missouri Educational Institutions 2023-05-26.xlsx")

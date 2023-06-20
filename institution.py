@@ -6,10 +6,12 @@ import bs4
 import time
 import random
 
-wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Illinois Educational Institutions 2023-05-26.xlsx")
+# Change Add .xlsx
+wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Missouri Educational Institutions 2023-05-26.xlsx")
 wb_data_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\AccreditationData.xlsx")
 wb_nces_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Data_3-14-2023---623.xlsx")
-ws_uasys = wb_uasys["All Illinois Institutions"]
+# Change
+ws_uasys = wb_uasys["All Missouri Institutions"]
 ws_data_grab = wb_data_grab["InstituteCampuses"]
 ws_nces_grab = wb_nces_grab["Data_3-14-2023---623"]
 
@@ -67,10 +69,16 @@ for cell in ws_uasys['AA']:
         print('Unknown error')
 
 # Get INST_ESTABLISHED_DATE for PRIMARY_INSTITUTION_NAME from Google search
+# work on denied access and headless evasion
 print('Looking up Institution established dates.........')
 for cell in ws_uasys['U']:
     PRIMARY_INSTITUTION_NAME = str(cell.value).upper()
-    if "BARBER" or "BEAUTY" or "HAIR" or "SALON" in PRIMARY_INSTITUTION_NAME == False:
+    found_word1 = PRIMARY_INSTITUTION_NAME.find('BARBER')
+    found_word2 = PRIMARY_INSTITUTION_NAME.find('BEAUTY')
+    found_word3 = PRIMARY_INSTITUTION_NAME.find('HAIR')
+    found_word4 = PRIMARY_INSTITUTION_NAME.find('SALON')
+    found_word5 = PRIMARY_INSTITUTION_NAME.find('SPA')
+    if found_word1 or found_word2 or found_word3 or found_word4 or found_word5 < 0:
         try:
             cell_prev = int(cell.row) - 1
             if cell_prev != 0 and PRIMARY_INSTITUTION_NAME != ws_uasys['U' + str(cell_prev)].value.upper():
@@ -93,7 +101,7 @@ for cell in ws_uasys['U']:
                         print(INST_ESTABLISHED_DATE)
                         ws_uasys['AF' + str(cell.row)].value = str(INST_ESTABLISHED_DATE) + '-01-01'
                         # change this save location between states
-                        wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy TexasEducationalInstitutionsDatabase.xlsx")
+                        wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Illinois Educational Institutions 2023-05-26.xlsx")
                     except AttributeError:
                         print("----------------------------------")
                         print('NoneType for: ' + str(cell.value))
@@ -103,6 +111,11 @@ for cell in ws_uasys['U']:
                         print('Unknown error')
         except TypeError:
             print('That was a merged or empty cell skipping......')
+        except AttributeError:
+            print('NoneType for this cell')
+        except:
+            print('unknown error')
+
 # Check to see if institution is inactive/closed according to NCES database
 for cell in ws_uasys['U']:
     organization_name = str(cell.value)
@@ -113,7 +126,8 @@ for cell in ws_uasys['U']:
                 nces_institution = str(look.value)
                 if nces_institution.upper() == organization_name.upper():
                     institution_closed = ws_nces_grab['W' + str(look.row)].value
-                    if institution_closed != '-2':
+                    found_two = str(institution_closed).find('-2')
+                    if found_two < 0:
                         ws_uasys['AI' + str(cell.row)].value = institution_closed
     except AttributeError:
         print("----------------------------------")
@@ -135,4 +149,5 @@ for cell in ws_uasys['AJ']:
     except:
         print('Unknown error')
 print('Done!')
-wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Illinois Educational Institutions 2023-05-26.xlsx")
+# Change
+wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Missouri Educational Institutions 2023-05-26.xlsx")
