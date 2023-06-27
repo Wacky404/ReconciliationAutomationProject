@@ -7,11 +7,11 @@ import time
 import random
 
 # Change Add .xlsx
-wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Missouri Educational Institutions 2023-05-26.xlsx")
+wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy UASYSInstituteDatabase.xlsx")
 wb_data_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\AccreditationData.xlsx")
 wb_nces_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Data_3-14-2023---623.xlsx")
 # Change
-ws_uasys = wb_uasys["All Missouri Institutions"]
+ws_uasys = wb_uasys["All Arkansas Institutions"]
 ws_data_grab = wb_data_grab["InstituteCampuses"]
 ws_nces_grab = wb_nces_grab["Data_3-14-2023---623"]
 
@@ -71,7 +71,7 @@ for cell in ws_uasys['AA']:
 # Get INST_ESTABLISHED_DATE for PRIMARY_INSTITUTION_NAME from Google search
 # work on denied access and headless evasion
 print('Looking up Institution established dates.........')
-for cell in ws_uasys['U']:
+for cell in ws_uasys['V']:
     PRIMARY_INSTITUTION_NAME = str(cell.value).upper()
     found_word1 = PRIMARY_INSTITUTION_NAME.find('BARBER')
     found_word2 = PRIMARY_INSTITUTION_NAME.find('BEAUTY')
@@ -81,9 +81,9 @@ for cell in ws_uasys['U']:
     if found_word1 or found_word2 or found_word3 or found_word4 or found_word5 < 0:
         try:
             cell_prev = int(cell.row) - 1
-            if cell_prev != 0 and PRIMARY_INSTITUTION_NAME != ws_uasys['U' + str(cell_prev)].value.upper():
+            if cell_prev != 0 and PRIMARY_INSTITUTION_NAME != ws_uasys['V' + str(cell_prev)].value.upper():
                 print(PRIMARY_INSTITUTION_NAME + ' was founded:')
-                if ws_uasys['AF' + str(cell.row)].value is None:
+                if ws_uasys['AG' + str(cell.row)].value is None:
                     ssl._create_default_https_context = ssl._create_unverified_context
                     chrome_options = uc.ChromeOptions()
 
@@ -99,9 +99,9 @@ for cell in ws_uasys['U']:
                         DATE = web_data.find('div', class_='Z0LcW t2b5Cf').text
                         INST_ESTABLISHED_DATE = DATE
                         print(INST_ESTABLISHED_DATE)
-                        ws_uasys['AF' + str(cell.row)].value = str(INST_ESTABLISHED_DATE) + '-01-01'
+                        ws_uasys['AG' + str(cell.row)].value = str(INST_ESTABLISHED_DATE) + '-01-01'
                         # change this save location between states
-                        wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Illinois Educational Institutions 2023-05-26.xlsx")
+                        wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy UASYSInstituteDatabase.xlsx")
                     except AttributeError:
                         print("----------------------------------")
                         print('NoneType for: ' + str(cell.value))
@@ -150,4 +150,4 @@ for cell in ws_uasys['AJ']:
         print('Unknown error')
 print('Done!')
 # Change
-wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Missouri Educational Institutions 2023-05-26.xlsx")
+wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy UASYSInstituteDatabase.xlsx")
