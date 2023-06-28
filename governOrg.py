@@ -44,12 +44,12 @@ for cell in ws_uasys['U']:
 print("Populating associated fields.....hold on.....")
 # Get Governing_Organization_Name's DAPIP, OPE, and IPEDSID IDs from data_grab
 for cell in ws_uasys['E']:
-    organization_name = str(cell.value)
+    institution_govern = str(cell.value)
 
     for grab in ws_data_grab['D']:
         location_name = str(grab.value)
 
-        if location_name.upper() == organization_name.upper():
+        if location_name.upper() == institution_govern.upper():
             GOV_DAPID = str(ws_data_grab['A' + str(grab.row)].value)
             GOV_OPEID = str(ws_data_grab['B' + str(grab.row)].value)
             GOV_IPEDID = str(ws_data_grab['C' + str(grab.row)].value)
@@ -59,11 +59,11 @@ for cell in ws_uasys['E']:
             ws_uasys['D' + str(cell.row)].value = GOV_IPEDID
 # Get GOV address line 1, GOV_MUNICIPALITY, GOV postal code
 for cell in ws_uasys['E']:
-    organization_name = str(cell.value)
+    institution_govern = str(cell.value)
 
     for grab in ws_data_grab['D']:
         location_name = str(grab.value)
-        if location_name.upper() == organization_name.upper():
+        if location_name.upper() == institution_govern.upper():
             address_grab = str(ws_data_grab['H' + str(grab.row)].value)
             address_grab.split(', ')
             try:
@@ -149,11 +149,11 @@ for cell in ws_uasys['K']:
         print('Unknown error')
 # Get GOV_PhoneNumberFull
 for cell in ws_uasys['E']:
-    organization_name = str(cell.value)
+    institution_govern = str(cell.value)
 
     for grab in ws_data_grab['D']:
         location_name = str(grab.value)
-        if location_name.upper() == organization_name.upper():
+        if location_name.upper() == institution_govern.upper():
             phoneNumber_grab = str(ws_data_grab['I' + str(grab.row)].value)
             ws_uasys['M' + str(cell.row)].value = phoneNumber_grab
 
@@ -161,15 +161,15 @@ for cell in ws_uasys['E']:
                 print('No phone number from Accreditation Database : Searching')
                 for look in ws_nces_grab['B']:
                     nces_institution = str(look.value)
-                    if nces_institution.upper() == organization_name.upper():
+                    if nces_institution.upper() == institution_govern.upper():
                         phoneNumber_grab = str(ws_nces_grab['L' + str(grab.row)].value)
                         ws_uasys['M' + str(cell.row)].value = phoneNumber_grab
 # Check to see if GOV_ORG is inactive/closed according to NCES database
 for cell in ws_uasys['E']:
-    organization_name = str(cell.value)
+    institution_govern = str(cell.value)
     for look in ws_nces_grab['B']:
         nces_institution = str(look.value)
-        if nces_institution.upper() == organization_name.upper():
+        if nces_institution.upper() == institution_govern.upper():
             institution_closed = ws_nces_grab['W' + str(look.row)].value
             found_two = str(institution_closed).find('-2')
             if found_two < 0:
@@ -185,7 +185,59 @@ for cell in ws_uasys['P']:
         print('Cell is read only!')
     except:
         print('Unknown error')
+# if not in data_grab then search nces_grab database
+for cell in ws_uasys['E']:
+    try:
+        if cell.value is None:
+            search_institution = ws_uasys['U' + str(cell.row)].value
+            for look in ws_nces_grab['B']:
+                nces_institution = str(look.value)
+                if nces_institution.upper() == search_institution.upper():
+                    GOV_DAPID = ws_uasys['R' + str(cell.row)].value
+                    GOV_OPEID = ws_uasys['S' + str(cell.row)].value
+                    GOV_IPEDID = ws_uasys['T' + str(cell.row)].value
+                    PRIMARY_INSTITUTION_NAME = nces_institution.upper()
+                    GOV_ADDRESS_LINE_1 = ws_nces_grab['I' + str(look.row)].value
+                    GOV_MUNICIPALITY = ws_nces_grab['J' + str(look.row)].value
+                    GOV_STATE_REGION_SHORT = ws_nces_grab['C' + str(look.row)].value
+                    GOV_POSTAL_CODE = ws_nces_grab['K' + str(look.row)].value
+                    GOV_PhoneNumberFull = ws_nces_grab['L' + str(look.row)].value
 
+                    ws_uasys['B' + str(cell.row)].value = GOV_DAPID
+                    ws_uasys['C' + str(cell.row)].value = GOV_OPEID
+                    ws_uasys['D' + str(cell.row)].value = GOV_IPEDID
+                    ws_uasys['E' + str(cell.row)].value = PRIMARY_INSTITUTION_NAME.upper()
+                    ws_uasys['F' + str(cell.row)].value = GOV_ADDRESS_LINE_1
+                    ws_uasys['I' + str(cell.row)].value = GOV_MUNICIPALITY
+                    ws_uasys['J' + str(cell.row)].value = GOV_STATE_REGION_SHORT
+                    ws_uasys['L' + str(cell.row)].value = GOV_POSTAL_CODE
+                    ws_uasys['M' + str(cell.row)].value = GOV_PhoneNumberFull
+    except AttributeError:
+        print('Cell is read only!')
+    except TypeError:
+        print('Cell is read only!')
+    except:
+        print('Unknown error')
+# Check to see if institution is inactive/closed according to NCES database
+for cell in ws_uasys['E']:
+    institution_govern = str(cell.value)
+    cell_prev = int(cell.row) - 1
+    try:
+        if cell_prev != 0 and institution_govern.upper() != ws_uasys['E' + str(cell_prev)].value.upper():
+            for look in ws_nces_grab['B']:
+                nces_institution = str(look.value)
+                if nces_institution.upper() == institution_govern.upper():
+                    institution_closed = ws_nces_grab['W' + str(look.row)].value
+                    found_two = str(institution_closed).find('-2')
+                    if found_two < 0:
+                        ws_uasys['AI' + str(cell.row)].value = institution_closed
+    except AttributeError:
+        print("----------------------------------")
+        print('NoneType for: ' + str(cell.value))
+    except TypeError:
+        print('NoneType')
+    except:
+        print('Unknown error')
 print('Done!')
 # Change
 wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx")
