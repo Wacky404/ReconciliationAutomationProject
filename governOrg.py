@@ -1,11 +1,11 @@
 from openpyxl import workbook, load_workbook
 
 # Change Add .xlsx
-wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Missouri Educational Institutions 2023-05-26.xlsx")
+wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx")
 wb_data_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\AccreditationData.xlsx")
 wb_nces_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Data_3-14-2023---623.xlsx")
 # Change
-ws_uasys = wb_uasys["All Missouri Institutions"]
+ws_uasys = wb_uasys["All California Institutions"]
 ws_data_grab = wb_data_grab["InstituteCampuses"]
 ws_nces_grab = wb_nces_grab["Data_3-14-2023---623"]
 # If GOVERNING_ORGANIZATION_ID is blank then assign the cell AutoGen
@@ -105,7 +105,7 @@ for cell in ws_uasys['E']:
                 GOV_PO_BOX_LINE = temp_POBOX.strip('.')
                 GOV_MUNICIPALITY = temp_MUNI.upper()
                 # Change state abbreviation between states
-                GOV_POSTAL_CODE = temp_PCODE.strip('MO')
+                GOV_POSTAL_CODE = temp_PCODE.strip('CA')
 
                 ws_uasys['F' + str(cell.row)].value = GOV_ADDRESS_LINE_1
                 ws_uasys['G' + str(cell.row)].value = GOV_ADDRESS_LINE_2
@@ -129,7 +129,7 @@ for cell in ws_uasys['J']:
     try:
         if cell.value is None:
             # change state to workbook state
-            ws_uasys['J' + str(cell.row)].value = "MO"
+            ws_uasys['J' + str(cell.row)].value = "CA"
     except AttributeError:
         print('Cell is read only!')
     except TypeError:
@@ -188,4 +188,4 @@ for cell in ws_uasys['P']:
 
 print('Done!')
 # Change
-wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Missouri Educational Institutions 2023-05-26.xlsx")
+wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx")

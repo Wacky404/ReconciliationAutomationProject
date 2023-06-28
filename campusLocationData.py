@@ -6,11 +6,11 @@ import time
 import random
 
 # Change Add .xlsx
-wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Missouri Educational Institutions 2023-05-26.xlsx")
+wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx")
 wb_data_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\AccreditationData.xlsx")
 wb_nces_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Data_3-14-2023---623.xlsx")
 # Change
-ws_uasys = wb_uasys["All Missouri Institutions"]
+ws_uasys = wb_uasys["All California Institutions"]
 ws_data_grab = wb_data_grab["InstituteCampuses"]
 ws_nces_grab = wb_nces_grab["Data_3-14-2023---623"]
 
@@ -94,7 +94,7 @@ for cell in ws_uasys['AP']:
                 CAMP_PO_BOX_LINE = temp_POBOX.strip('.')
                 CAMP_MUNICIPALITY = temp_MUNI.upper()
                 # Change state abbreviation between states
-                CAMP_POSTAL_CODE = temp_PCODE.strip('MO')
+                CAMP_POSTAL_CODE = temp_PCODE.strip('CA')
 
                 ws_uasys['AT' + str(cell.row)].value = CAMP_ADDRESS_LINE_2
                 ws_uasys['AU' + str(cell.row)].value = CAMP_PO_BOX_LINE
@@ -118,59 +118,60 @@ for cell in ws_uasys['AP']:
 
             ws_uasys['AZ' + str(cell.row)].value = CAMP_PhoneNumberFull
 # Checking NCES for phonenumber if none is present
-for cell in ws_uasys['AQ']:
-    campus_name = str(cell.value)
-    for check in ws_uasys['AZ']:
-        if check.value is None:
-            print('No phone number from Accreditation Database : Searching')
-            for look in ws_nces_grab['B']:
-                nces_institution = str(look.value)
-                if nces_institution.upper() == campus_name.upper():
-                    print('Found a phone number number!')
-                    CAMP_PhoneNumberFull = str(ws_nces_grab['L' + str(look.row)].value)
-                    ws_uasys['AZ' + str(cell.row)].value = CAMP_PhoneNumberFull
+# Fix this
+# for cell in ws_uasys['AQ']:
+#     campus_name = str(cell.value)
+#     for check in ws_uasys['AZ']:
+#         if check.value is None:
+#             print('No phone number from Accreditation Database : Searching')
+#             for look in ws_nces_grab['B']:
+#                 nces_institution = str(look.value)
+#                 if nces_institution.upper() == campus_name.upper():
+#                     print('Found a phone number number!')
+#                     CAMP_PhoneNumberFull = str(ws_nces_grab['L' + str(look.row)].value)
+#                     ws_uasys['AZ' + str(cell.row)].value = CAMP_PhoneNumberFull
 # Get INST_ESTABLISHED_DATE for PRIMARY_INSTITUTION_NAME from Google search
-print('Looking up Institution established dates.........')
-for cell in ws_uasys['AP']:
-    PRIMARY_INSTITUTION_NAME = str(cell.value).upper()
-    if "BARBER" or "BEAUTY" or "HAIR" or "SALON" in PRIMARY_INSTITUTION_NAME is False:
-        try:
-            cell_prev = int(cell.row) - 1
-            if cell_prev != 0 and PRIMARY_INSTITUTION_NAME != ws_uasys['U' + str(cell_prev)].value.upper():
-                print(PRIMARY_INSTITUTION_NAME + ' was founded:')
-                if ws_uasys['AF' + str(cell.row)].value is None:
-                    ssl._create_default_https_context = ssl._create_unverified_context
-                    chrome_options = uc.ChromeOptions()
-
-                    url = 'https://google.com/search?q=' + '"' + str(PRIMARY_INSTITUTION_NAME) + '"' + ' / Founded'
-                    driver = uc.Chrome(options=chrome_options)
-                    driver.get(url)
-                    wait = random.randrange(1, 10)
-                    time.sleep(wait)
-                    request_result = driver.page_source
-                    driver.quit()
-                    web_data = bs4.BeautifulSoup(request_result, "html5lib")
-                    try:
-                        DATE = web_data.find('div', class_='Z0LcW t2b5Cf').text
-                        INST_ESTABLISHED_DATE = DATE
-                        print(INST_ESTABLISHED_DATE)
-                        ws_uasys['AF' + str(cell.row)].value = str(INST_ESTABLISHED_DATE) + '-01-01'
-                        # change this save location between states
-                        wb_uasys.save(
-                            r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Illinois Educational Institutions 2023-05-26.xlsx")
-                    except AttributeError:
-                        print("----------------------------------")
-                        print('NoneType for: ' + str(cell.value))
-                    except TypeError:
-                        print('NoneType')
-                    except:
-                        print('Unknown error')
-        except TypeError:
-            print('That was a merged or empty cell skipping......')
-        except AttributeError:
-            print('Cell is read only!')
-        except:
-            print('Unknown error')
+# print('Looking up Institution established dates.........')
+# for cell in ws_uasys['AP']:
+#     PRIMARY_INSTITUTION_NAME = str(cell.value).upper()
+#     if "BARBER" or "BEAUTY" or "HAIR" or "SALON" in PRIMARY_INSTITUTION_NAME is False:
+#         try:
+#             cell_prev = int(cell.row) - 1
+#             if cell_prev != 0 and PRIMARY_INSTITUTION_NAME != ws_uasys['U' + str(cell_prev)].value.upper():
+#                 print(PRIMARY_INSTITUTION_NAME + ' was founded:')
+#                 if ws_uasys['AF' + str(cell.row)].value is None:
+#                     ssl._create_default_https_context = ssl._create_unverified_context
+#                     chrome_options = uc.ChromeOptions()
+#
+#                     url = 'https://google.com/search?q=' + '"' + str(PRIMARY_INSTITUTION_NAME) + '"' + ' / Founded'
+#                     driver = uc.Chrome(options=chrome_options)
+#                     driver.get(url)
+#                     wait = random.randrange(1, 10)
+#                     time.sleep(wait)
+#                     request_result = driver.page_source
+#                     driver.quit()
+#                     web_data = bs4.BeautifulSoup(request_result, "html5lib")
+#                     try:
+#                         DATE = web_data.find('div', class_='Z0LcW t2b5Cf').text
+#                         INST_ESTABLISHED_DATE = DATE
+#                         print(INST_ESTABLISHED_DATE)
+#                         ws_uasys['AF' + str(cell.row)].value = str(INST_ESTABLISHED_DATE) + '-01-01'
+#                         # change this save location between states
+#                         wb_uasys.save(
+#                             r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx")
+#                     except AttributeError:
+#                         print("----------------------------------")
+#                         print('NoneType for: ' + str(cell.value))
+#                     except TypeError:
+#                         print('NoneType')
+#                     except:
+#                         print('Unknown error')
+#         except TypeError:
+#             print('That was a merged or empty cell skipping......')
+#         except AttributeError:
+#             print('Cell is read only!')
+#         except:
+#             print('Unknown error')
 # Check to see if campus is inactive/closed according to NCES database
 for cell in ws_uasys['AP']:
     organization_name = str(cell.value)
@@ -194,4 +195,4 @@ for cell in ws_uasys['BE']:
         print('Unknown error')
 print('Done!')
 # Change
-wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Missouri Educational Institutions 2023-05-26.xlsx")
+wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx")
