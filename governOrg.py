@@ -1,4 +1,5 @@
 from openpyxl import workbook, load_workbook
+import re
 
 # Change Add .xlsx
 wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx")
@@ -226,6 +227,17 @@ for cell in ws_uasys['E']:
 # Move/delete substrings from GOV_ADDRESS_LINE_1 and moving them into respective column row
 for cell in ws_uasys['F']:
     governing_address = str(cell.value)
+    if governing_address.find('Ste'):
+        found = re.search("Ste(.+?)", governing_address)
+    elif governing_address.find('Unit'):
+        found = re.search("Unit(.+?)", governing_address)
+    elif governing_address.find('# '):
+        found = re.search("#(.+?)", governing_address)
+    elif governing_address.find('PO Box'):
+        found = re.search("PO Box(.+?)", governing_address)
+    elif governing_address.find('Floor'):
+        found = re.search([0-9]"")
+
 
 # Check to see if institution is inactive/closed according to NCES database
 for cell in ws_uasys['E']:
