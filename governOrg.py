@@ -223,6 +223,10 @@ for cell in ws_uasys['E']:
         print('Cell is read only!')
     except:
         print('Unknown error')
+# Move/delete substrings from GOV_ADDRESS_LINE_1 and moving them into respective column row
+for cell in ws_uasys['F']:
+    governing_address = str(cell.value)
+
 # Check to see if institution is inactive/closed according to NCES database
 for cell in ws_uasys['E']:
     institution_govern = str(cell.value)
