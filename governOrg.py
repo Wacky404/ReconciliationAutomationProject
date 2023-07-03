@@ -100,6 +100,11 @@ for cell in ws_uasys['E']:
                     temp_LINE_2 = 'N/A'
                     temp_PCODE = temp_POBOX
                     temp_POBOX = 'N/A'
+                # Change state abbreviation between states
+                if temp_MUNI.startswith('CA'):
+                    temp_PCODE = temp_MUNI
+                    temp_MUNI = temp_POBOX
+                    temp_POBOX = 'N/A'
 
                 GOV_ADDRESS_LINE_2 = temp_LINE_2.upper()
                 GOV_PO_BOX_LINE = temp_POBOX.strip('.')
@@ -238,6 +243,7 @@ for cell in ws_uasys['E']:
         print('NoneType')
     except:
         print('Unknown error')
+#
 print('Done!')
 # Change
 wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx")
