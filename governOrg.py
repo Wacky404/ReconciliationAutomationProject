@@ -226,16 +226,16 @@ ws_nces_grab = wb_nces_grab["Data_3-14-2023---623"]
 #         print('Unknown error')
 # Move/delete substrings from GOV_ADDRESS_LINE_1 and moving them into respective column row
 for cell in ws_uasys['F']:
-    governing_address = str(cell.value)
-    if governing_address.find('Ste') != -1:
-        found = re.search("^Ste(.+?)", governing_address)
-        if not found:
-            continue
-        else:
-            GOV_ADDRESS_LINE_2 = found.group(1)
-            ws_uasys['G' + str(cell.row)].value = GOV_ADDRESS_LINE_2.upper()
-            change_address = re.sub(str(found.group(1)), "", governing_address)
-            ws_uasys['F' + str(cell.row)].value = change_address
+    governing_address = str(cell.value).split()
+    for index in range(len(governing_address)):
+        word = governing_address[index]
+        if word == 'Ste' or word == '#' or word == 'PO Box':
+            GOV_ADDRESS_LINE_2 = str(governing_address[index:len(governing_address)])
+            ws_uasys['G' + str(cell.row)].value = GOV_ADDRESS_LINE_2
+            ADDRESS_LINE_1 = str(cell.row)
+            phrase_removal = ADDRESS_LINE_1.find(GOV_ADDRESS_LINE_2)
+            if phrase_removal != -1:
+                ADDRESS_LINE_1.strip(GOV_ADDRESS_LINE_2)
     # elif governing_address.find('Unit') != -1:
     #     found = re.search("Unit(.+?)", governing_address)
     #     if not found:
