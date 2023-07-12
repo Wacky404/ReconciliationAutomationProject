@@ -7,8 +7,8 @@ if wrong_input == -1:
     raw_file = input("File location is explorer(.xlsx)")
 wb_uasys = load_workbook(raw_file, read_only=True)
 # add these to folder
-wb_data_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\AccreditationData.xlsx")
-wb_nces_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Data_3-14-2023---623.xlsx")
+wb_data_grab = load_workbook("AccreditationData.xlsx", )
+wb_nces_grab = load_workbook("Data_3-14-2023---623.xlsx")
 sheet_name = input("Name of sheet in raw file: ")
 ws_uasys = wb_uasys[sheet_name]
 ws_data_grab = wb_data_grab["InstituteCampuses"]
