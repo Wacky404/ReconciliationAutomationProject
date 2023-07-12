@@ -1,13 +1,19 @@
 from openpyxl import workbook, load_workbook
 
-# Change Add .xlsx
-wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx")
+raw_file = input("File location in explorer(.xlsx): ")
+wrong_input = raw_file.find(".xlsx")
+if wrong_input == -1:
+    print("Be sure to add .xlsx to end of file location!")
+    raw_file = input("File location is explorer(.xlsx)")
+wb_uasys = load_workbook(raw_file, read_only=True)
+# add these to folder
 wb_data_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\AccreditationData.xlsx")
 wb_nces_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Data_3-14-2023---623.xlsx")
-# Change
-ws_uasys = wb_uasys["All California Institutions"]
+sheet_name = input("Name of sheet in raw file: ")
+ws_uasys = wb_uasys[sheet_name]
 ws_data_grab = wb_data_grab["InstituteCampuses"]
 ws_nces_grab = wb_nces_grab["Data_3-14-2023---623"]
+abbrev = input("State Abbreviation of worksheet is needed: ")
 # If GOVERNING_ORGANIZATION_ID is blank then assign the cell AutoGen
 for cell in ws_uasys['A']:
     try:
@@ -100,8 +106,7 @@ for cell in ws_uasys['E']:
                     temp_LINE_2 = 'N/A'
                     temp_PCODE = temp_POBOX
                     temp_POBOX = 'N/A'
-                # Change state abbreviation between states
-                if temp_MUNI.startswith('CA'):
+                if temp_MUNI.startswith(abbrev.upper()):
                     temp_PCODE = temp_MUNI
                     temp_MUNI = temp_POBOX
                     temp_POBOX = 'N/A'
@@ -109,8 +114,7 @@ for cell in ws_uasys['E']:
                 GOV_ADDRESS_LINE_2 = temp_LINE_2.upper()
                 GOV_PO_BOX_LINE = temp_POBOX.strip('.')
                 GOV_MUNICIPALITY = temp_MUNI.upper()
-                # Change state abbreviation between states
-                GOV_POSTAL_CODE = temp_PCODE.strip('CA')
+                GOV_POSTAL_CODE = temp_PCODE.strip(abbrev.upper())
 
                 ws_uasys['F' + str(cell.row)].value = GOV_ADDRESS_LINE_1
                 ws_uasys['G' + str(cell.row)].value = GOV_ADDRESS_LINE_2
@@ -133,8 +137,7 @@ for cell in ws_uasys['E']:
 for cell in ws_uasys['J']:
     try:
         if cell.value is None:
-            # change state to workbook state
-            ws_uasys['J' + str(cell.row)].value = "CA"
+            ws_uasys['J' + str(cell.row)].value = abbrev.upper()
     except AttributeError:
         print('Cell is read only!')
     except TypeError:
@@ -248,6 +251,25 @@ for cell in ws_uasys['F']:
             phrase_removal = ADDRESS_LINE_1.find(GOV_ADDRESS_LINE_2)
             if phrase_removal != -1:
                 ws_uasys['F' + str(cell.row)].value = ADDRESS_LINE_1.strip(GOV_ADDRESS_LINE_2)
+# Move/delete substrings from GOV_POSTAL_CODE to GOV_MUNICIPALITY, GOV_MUNICIPALITY moves to GOV_ADDRESS_LINE_2
+for cell in ws_uasys['L']:
+    postal_code = str(cell.value).split()
+    for index in range(len(postal_code)):
+        word = postal_code[index]
+        if not word.isalpha():
+            continue
+        else:
+            GOV_POSTAL_CODE = str(' '.join(postal_code[index:len(postal_code)]))
+            if GOV_POSTAL_CODE.isalpha():
+                GOV_ADDRESS_LINE_1 = ws_uasys['I' + cell.row].value
+                GOV_MUNICIPALITY = ws_uasys['L' + cell.row].value
+                ws_uasys['I' + cell.row].value = GOV_ADDRESS_LINE_1
+                ws_uasys['G' + cell.row].value = GOV_MUNICIPALITY
+                ws_uasys['L' + cell.row].value = ''
+            else:
+                GOV_STATE_REGION_SHORT = str(postal_code[index])
+                ws_uasys['J' + cell.row].value = GOV_STATE_REGION_SHORT
+                ws_uasys['L' + cell.row].value = GOV_POSTAL_CODE.strip(GOV_STATE_REGION_SHORT)
 # Check to see if institution is inactive/closed according to NCES database
 for cell in ws_uasys['E']:
     institution_govern = str(cell.value)
@@ -270,5 +292,4 @@ for cell in ws_uasys['E']:
         print('Unknown error')
 
 print('Done!')
-# Change
-wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx")
+wb_uasys.save(raw_file)

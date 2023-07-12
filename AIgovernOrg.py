@@ -1,11 +1,11 @@
 import openai
-import pandas
+import pandas as pd
 
 # Deciding if dataframe should be turned into dictionary or left as df to be passed through into chatGPT
 # to get best results. Researching.
 
 # entire california database
-california = pandas.read_csv(
+california = pd.read_csv(
     r"C:\Users\Wayne Cole\Downloads\Work Stuff\CSV California Educational Institutions 2023-06-20.csv"
 )
 print(california.head())
