@@ -5,9 +5,8 @@ wrong_input = raw_file.find(".xlsx")
 if wrong_input == -1:
     print("Be sure to add .xlsx to end of file location!")
     raw_file = input("File location is explorer(.xlsx)")
-wb_uasys = load_workbook(raw_file, read_only=True)
-# add these to folder
-wb_data_grab = load_workbook("AccreditationData.xlsx", )
+wb_uasys = load_workbook(raw_file)
+wb_data_grab = load_workbook("AccreditationData.xlsx")
 wb_nces_grab = load_workbook("Data_3-14-2023---623.xlsx")
 sheet_name = input("Name of sheet in raw file: ")
 ws_uasys = wb_uasys[sheet_name]
@@ -261,15 +260,18 @@ for cell in ws_uasys['L']:
         else:
             GOV_POSTAL_CODE = str(' '.join(postal_code[index:len(postal_code)]))
             if GOV_POSTAL_CODE.isalpha():
-                GOV_ADDRESS_LINE_1 = ws_uasys['I' + cell.row].value
-                GOV_MUNICIPALITY = ws_uasys['L' + cell.row].value
-                ws_uasys['I' + cell.row].value = GOV_ADDRESS_LINE_1
-                ws_uasys['G' + cell.row].value = GOV_MUNICIPALITY
-                ws_uasys['L' + cell.row].value = ''
+                try:
+                    GOV_ADDRESS_LINE_1 = ws_uasys['I' + str(cell.row)].value
+                    GOV_MUNICIPALITY = ws_uasys['L' + str(cell.row)].value
+                    ws_uasys['I' + str(cell.row)].value = GOV_MUNICIPALITY
+                    ws_uasys['G' + str(cell.row)].value = GOV_ADDRESS_LINE_1
+                    ws_uasys['L' + str(cell.row)].value = ''
+                except AttributeError:
+                    print('MergedCell object attribute value is read-only')
             else:
                 GOV_STATE_REGION_SHORT = str(postal_code[index])
-                ws_uasys['J' + cell.row].value = GOV_STATE_REGION_SHORT
-                ws_uasys['L' + cell.row].value = GOV_POSTAL_CODE.strip(GOV_STATE_REGION_SHORT)
+                ws_uasys['J' + str(cell.row)].value = GOV_STATE_REGION_SHORT
+                ws_uasys['L' + str(cell.row)].value = GOV_POSTAL_CODE.strip(GOV_STATE_REGION_SHORT)
 # Check to see if institution is inactive/closed according to NCES database
 for cell in ws_uasys['E']:
     institution_govern = str(cell.value)

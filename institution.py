@@ -1,20 +1,18 @@
 from openpyxl import load_workbook
-import undetected_chromedriver as uc
 import re
-import ssl
-import bs4
-import time
-import random
 
-# Change Add .xlsx
-wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx")
-wb_data_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\AccreditationData.xlsx")
-wb_nces_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Data_3-14-2023---623.xlsx")
-# Change
-ws_uasys = wb_uasys["All California Institutions"]
+raw_file = input("File location in explorer(.xlsx): ")
+wrong_input = raw_file.find(".xlsx")
+if wrong_input == -1:
+    print("Be sure to add .xlsx to end of file location!")
+    raw_file = input("File location is explorer(.xlsx)")
+wb_uasys = load_workbook(raw_file)
+wb_data_grab = load_workbook("AccreditationData.xlsx")
+wb_nces_grab = load_workbook("Data_3-14-2023---623.xlsx")
+sheet_name = input("Name of sheet in raw file: ")
+ws_uasys = wb_uasys[sheet_name]
 ws_data_grab = wb_data_grab["InstituteCampuses"]
 ws_nces_grab = wb_nces_grab["Data_3-14-2023---623"]
-
 # If PRIMARY_ORGANIZATION_ID is blank then assign the cell AutoGen
 for cell in ws_uasys['Q']:
     try:
@@ -26,7 +24,6 @@ for cell in ws_uasys['Q']:
         print('Cell is read only!')
     except:
         print('Unknown error')
-
 # Get INST_PO_BOX_LINE for PRIMARY_INSTITUTION_NAME from LocationName -> Address
 for cell in ws_uasys['U']:
     PRIMARY_INSTITUTION_NAME = str(cell.value).upper()
@@ -55,7 +52,6 @@ for cell in ws_uasys['U']:
         print('NoneType')
     except:
         print('Unknown error')
-
 # If INST_COUNTRY_CODE is blank then assign USA
 for cell in ws_uasys['AA']:
     try:
@@ -67,7 +63,6 @@ for cell in ws_uasys['AA']:
         print('Cell is read only!')
     except:
         print('Unknown error')
-
 # Get INST_ESTABLISHED_DATE for PRIMARY_INSTITUTION_NAME from Google search
 # work on denied access and headless evasion
 # print('Looking up Institution established dates.........')
@@ -100,8 +95,7 @@ for cell in ws_uasys['AA']:
 #                         INST_ESTABLISHED_DATE = DATE
 #                         print(INST_ESTABLISHED_DATE)
 #                         ws_uasys['AG' + str(cell.row)].value = str(INST_ESTABLISHED_DATE) + '-01-01'
-#                         # change this save location between states
-#                         wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx")
+#                         wb_uasys.save(raw_file)
 #                     except AttributeError:
 #                         print("----------------------------------")
 #                         print('NoneType for: ' + str(cell.value))
@@ -115,7 +109,42 @@ for cell in ws_uasys['AA']:
 #             print('NoneType for this cell')
 #         except:
 #             print('unknown error')
-
+# Move/delete substrings from INST_ADDRESS_LINE_1 and moving them into respective column row
+for cell in ws_uasys['V']:
+    governing_address = str(cell.value).split()
+    for index in range(len(governing_address)):
+        word = governing_address[index]
+        if word == 'Ste' or word == 'Ste.' or word == 'Unit' or word == 'PO' or word == 'Suite':
+            INST_ADDRESS_LINE_1 = str(' '.join(governing_address[index:len(governing_address)]))
+            found_pobox = INST_ADDRESS_LINE_1.find('PO Box')
+            if found_pobox == -1:
+                ws_uasys['W' + str(cell.row)].value = INST_ADDRESS_LINE_1.upper()
+            else:
+                ws_uasys['X' + str(cell.row)].value = INST_ADDRESS_LINE_1
+                ws_uasys['W' + str(cell.row)].value = 'N/A'
+            ADDRESS_LINE_1 = str(cell.value)
+            phrase_removal = ADDRESS_LINE_1.find(INST_ADDRESS_LINE_1)
+            if phrase_removal != -1:
+                ws_uasys['V' + str(cell.row)].value = ADDRESS_LINE_1.strip(INST_ADDRESS_LINE_1)
+        elif word == 'Floor' or word == 'Fl':
+            floor_num = index - 1
+            INST_ADDRESS_LINE_1 = str(' '.join(governing_address[floor_num:len(governing_address)]))
+            ws_uasys['W' + str(cell.row)].value = INST_ADDRESS_LINE_1.upper()
+            ADDRESS_LINE_1 = str(cell.value)
+            phrase_removal = ADDRESS_LINE_1.find(INST_ADDRESS_LINE_1)
+            if phrase_removal != -1:
+                ws_uasys['V' + str(cell.row)].value = ADDRESS_LINE_1.strip(INST_ADDRESS_LINE_1)
+# If INST_ADDRESS_LINE_2 is blank then assign the cell N/A
+for cell in ws_uasys['W']:
+    try:
+        if cell.value is None:
+            ws_uasys['W' + str(cell.row)].value = "N/A"
+    except AttributeError:
+        print('Cell is read only!')
+    except TypeError:
+        print('Cell is read only!')
+    except:
+        print('Unknown error')
 # Check to see if institution is inactive/closed according to NCES database
 for cell in ws_uasys['U']:
     organization_name = str(cell.value)
@@ -149,5 +178,4 @@ for cell in ws_uasys['AJ']:
     except:
         print('Unknown error')
 print('Done!')
-# Change
-wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx")
+wb_uasys.save(raw_file)
