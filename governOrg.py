@@ -256,7 +256,13 @@ for cell in ws_uasys['L']:
     for index in range(len(postal_code)):
         word = postal_code[index]
         if not word.isalpha():
-            continue
+            if word == "N/":
+                gov_municipality = ws_uasys['I' + str(cell.row)].value.split()
+                ws_uasys['J' + str(cell.row)].value = str(gov_municipality[0])
+                ws_uasys['L' + str(cell.row)].value = str(gov_municipality[1])
+                GOV_MUNICIPALITY = ws_uasys['H' + str(cell.row)].value
+                ws_uasys['I' + str(cell.row)].value = GOV_MUNICIPALITY
+                ws_uasys['H' + str(cell.row)].value = 'N/A'
         else:
             GOV_POSTAL_CODE = str(' '.join(postal_code[index:len(postal_code)]))
             if GOV_POSTAL_CODE.isalpha():

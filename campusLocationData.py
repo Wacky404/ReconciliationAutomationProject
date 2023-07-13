@@ -5,14 +5,19 @@ import bs4
 import time
 import random
 
-# Change Add .xlsx
-wb_uasys = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx")
-wb_data_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\AccreditationData.xlsx")
-wb_nces_grab = load_workbook(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Data_3-14-2023---623.xlsx")
-# Change
-ws_uasys = wb_uasys["All California Institutions"]
+raw_file = input("File location in explorer(.xlsx): ")
+wrong_input = raw_file.find(".xlsx")
+if wrong_input == -1:
+    print("Be sure to add .xlsx to end of file location!")
+    raw_file = input("File location is explorer(.xlsx)")
+wb_uasys = load_workbook(raw_file)
+wb_data_grab = load_workbook("AccreditationData.xlsx")
+wb_nces_grab = load_workbook("Data_3-14-2023---623.xlsx")
+sheet_name = input("Name of sheet in raw file: ")
+ws_uasys = wb_uasys[sheet_name]
 ws_data_grab = wb_data_grab["InstituteCampuses"]
 ws_nces_grab = wb_nces_grab["Data_3-14-2023---623"]
+abbrev = input("State Abbreviation of worksheet is needed: ")
 
 # If CAMPUS_LOCATION_ID is blank then assign the cell AutoGen
 for cell in ws_uasys['AK']:
@@ -25,36 +30,37 @@ for cell in ws_uasys['AK']:
         print('Cell is read only!')
     except:
         print('Unknown error')
-
+# Grabbing the missing cells in CAMP_OFFICIAL_INSTITUTION_NAME from PRIMARY_INSTITUTION_NAME
+for cell in ws_uasys['AP']:
+    if cell.value is None:
+        try:
+            CAMP_OFFICIAL_INSTITUTION_NAME = ws_uasys['U' + str(cell.row)].value
+            ws_uasys['AP' + str(cell.row)].value = CAMP_OFFICIAL_INSTITUTION_NAME.upper()
+        except AttributeError:
+            print('NoneType object has no attribute upper')
 # Get CAMP_OFFICIAL_INSTITUTION_NAME CAMP_OPED_ID and CAMP_IPED_ID from LocationName OpeId and IpedsUnitIds
 for cell in ws_uasys['AP']:
     organization_name = str(cell.value)
     print("----------------------------------")
     print('Populating ' + organization_name + ' fields.....')
-
     for grab in ws_data_grab['D']:
         location_name = str(grab.value)
-
         if location_name.upper() == organization_name.upper():
-            # GOV_DAPID = str(ws_data_grab['A' + str(grab.row)].value)
-            CAMP_OPED_ID = str(ws_data_grab['B' + str(grab.row)].value)
-            CAMP_IPED_ID = str(ws_data_grab['C' + str(grab.row)].value)
-
-            # ws_uasys['C' + str(cell.row)].value = GOV_DAPID
+            CAMP_DAPID = str(ws_data_grab['R' + str(grab.row)].value)
+            CAMP_OPED_ID = str(ws_data_grab['S' + str(grab.row)].value)
+            CAMP_IPED_ID = str(ws_data_grab['T' + str(grab.row)].value)
+            ws_uasys['AL' + str(cell.row)].value = CAMP_DAPID
             ws_uasys['AM' + str(cell.row)].value = CAMP_OPED_ID
             ws_uasys['AN' + str(cell.row)].value = CAMP_IPED_ID
-
 # Get CAMP_PO_BOX_LINE and CAMP_PhoneNumberFull from CAMP_OFFICIAL_INSTITUTION_NAME against LocationName fields
 for cell in ws_uasys['AP']:
     organization_name = str(cell.value)
-
     for grab in ws_data_grab['D']:
         location_name = str(grab.value)
         if location_name.upper() == organization_name.upper():
             CAMP_PhoneNumberFull = str(ws_data_grab['I' + str(grab.row)].value)
             address_grab = str(ws_data_grab['H' + str(grab.row)].value)
             address_grab.split(', ')
-
             try:
                 if len(address_grab.split(', ')) == 1:
                     address_grab = address_grab + ", N/A, N/A, N/A, N/A, N/A, N/A"
@@ -93,8 +99,7 @@ for cell in ws_uasys['AP']:
                 CAMP_ADDRESS_LINE_2 = temp_LINE_2.upper()
                 CAMP_PO_BOX_LINE = temp_POBOX.strip('.')
                 CAMP_MUNICIPALITY = temp_MUNI.upper()
-                # Change state abbreviation between states
-                CAMP_POSTAL_CODE = temp_PCODE.strip('CA')
+                CAMP_POSTAL_CODE = temp_PCODE.strip(abbrev)
 
                 ws_uasys['AT' + str(cell.row)].value = CAMP_ADDRESS_LINE_2
                 ws_uasys['AU' + str(cell.row)].value = CAMP_PO_BOX_LINE
@@ -156,9 +161,7 @@ for cell in ws_uasys['AP']:
 #                         INST_ESTABLISHED_DATE = DATE
 #                         print(INST_ESTABLISHED_DATE)
 #                         ws_uasys['AF' + str(cell.row)].value = str(INST_ESTABLISHED_DATE) + '-01-01'
-#                         # change this save location between states
-#                         wb_uasys.save(
-#                             r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx")
+#                         wb_uasys.save(raw_file)
 #                     except AttributeError:
 #                         print("----------------------------------")
 #                         print('NoneType for: ' + str(cell.value))
@@ -194,5 +197,4 @@ for cell in ws_uasys['BE']:
     except:
         print('Unknown error')
 print('Done!')
-# Change
-wb_uasys.save(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx")
+wb_uasys.save(raw_file)
