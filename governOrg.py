@@ -298,6 +298,5 @@ for cell in ws_uasys['E']:
         print('NoneType')
     except:
         print('Unknown error')
-
 print('Done!')
 wb_uasys.save(raw_file)

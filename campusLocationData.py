@@ -1,9 +1,4 @@
 from openpyxl import workbook, load_workbook
-import undetected_chromedriver as uc
-import ssl
-import bs4
-import time
-import random
 
 raw_file = input("File location in explorer(.xlsx): ")
 wrong_input = raw_file.find(".xlsx")
@@ -18,7 +13,6 @@ ws_uasys = wb_uasys[sheet_name]
 ws_data_grab = wb_data_grab["InstituteCampuses"]
 ws_nces_grab = wb_nces_grab["Data_3-14-2023---623"]
 abbrev = input("State Abbreviation of worksheet is needed: ")
-
 # If CAMPUS_LOCATION_ID is blank then assign the cell AutoGen
 for cell in ws_uasys['AK']:
     try:
@@ -36,6 +30,7 @@ for cell in ws_uasys['AP']:
         try:
             CAMP_OFFICIAL_INSTITUTION_NAME = ws_uasys['U' + str(cell.row)].value
             ws_uasys['AP' + str(cell.row)].value = CAMP_OFFICIAL_INSTITUTION_NAME.upper()
+            ws_uasys['AQ' + str(cell.row)].value = CAMP_OFFICIAL_INSTITUTION_NAME.upper()
         except AttributeError:
             print('NoneType object has no attribute upper')
 # Get CAMP_OFFICIAL_INSTITUTION_NAME CAMP_OPED_ID and CAMP_IPED_ID from LocationName OpeId and IpedsUnitIds
@@ -46,12 +41,19 @@ for cell in ws_uasys['AP']:
     for grab in ws_data_grab['D']:
         location_name = str(grab.value)
         if location_name.upper() == organization_name.upper():
-            CAMP_DAPID = str(ws_data_grab['R' + str(grab.row)].value)
-            CAMP_OPED_ID = str(ws_data_grab['S' + str(grab.row)].value)
-            CAMP_IPED_ID = str(ws_data_grab['T' + str(grab.row)].value)
+            CAMP_DAPID = str(ws_data_grab['A' + str(grab.row)].value)
+            CAMP_OPED_ID = str(ws_data_grab['B' + str(grab.row)].value)
+            CAMP_IPED_ID = str(ws_data_grab['C' + str(grab.row)].value)
             ws_uasys['AL' + str(cell.row)].value = CAMP_DAPID
             ws_uasys['AM' + str(cell.row)].value = CAMP_OPED_ID
             ws_uasys['AN' + str(cell.row)].value = CAMP_IPED_ID
+# for any CAMP_OFFICIAL_INSTITUTION_NAME ids that aren't populated by accred, find data in institution
+for cell in ws_uasys['AP']:
+    CAMP_OFFICIAL_INSTITUTION_NAME = str(cell.value)
+    COIN_dapid = ws_uasys['AL' + str(cell.row)].value
+    COIN_opeid = ws_uasys['AM' + str(cell.row)].value
+    COIN_ipedid = ws_uasys['AN' + str(cell.row)].value
+
 # Get CAMP_PO_BOX_LINE and CAMP_PhoneNumberFull from CAMP_OFFICIAL_INSTITUTION_NAME against LocationName fields
 for cell in ws_uasys['AP']:
     organization_name = str(cell.value)
@@ -122,6 +124,26 @@ for cell in ws_uasys['AP']:
                 ws_uasys['AY' + str(cell.row)].value = 'NULL'
 
             ws_uasys['AZ' + str(cell.row)].value = CAMP_PhoneNumberFull
+# Grabbing location data from Institution section to bring it to campus/location section for main campuses/one location
+for cell in ws_uasys['AQ']:
+    campus_institution = str(cell.value)
+    official_institution = ws_uasys['AP' + str(cell.row)].value
+    if campus_institution == official_institution and ws_uasys['AS' + str(cell.row)].value is None:
+        ADDRESS_LINE_1 = ws_uasys['V' + str(cell.row)].value
+        ADDRESS_LINE_2 = ws_uasys['W' + str(cell.row)].value
+        PO_BOX_LINE = ws_uasys['X' + str(cell.row)].value
+        MUNICIPALITY = ws_uasys['Y' + str(cell.row)].value
+        STATE_REGION_SHORT = ws_uasys['Z' + str(cell.row)].value
+        POSTAL_CODE = ws_uasys['AB' + str(cell.row)].value
+        PhoneNumberFull = ws_uasys['AC' + str(cell.row)].value
+        ws_uasys['AS' + str(cell.row)].value = ADDRESS_LINE_1
+        ws_uasys['AT' + str(cell.row)].value = ADDRESS_LINE_2
+        ws_uasys['AU' + str(cell.row)].value = PO_BOX_LINE
+        ws_uasys['AV' + str(cell.row)].value = MUNICIPALITY
+        ws_uasys['AW' + str(cell.row)].value = STATE_REGION_SHORT
+        ws_uasys['AX' + str(cell.row)].value = 'USA'
+        ws_uasys['AY' + str(cell.row)].value = POSTAL_CODE
+        ws_uasys['AZ' + str(cell.row)].value = PhoneNumberFull
 # Checking NCES for phonenumber if none is present
 # Fix this
 # for cell in ws_uasys['AQ']:
