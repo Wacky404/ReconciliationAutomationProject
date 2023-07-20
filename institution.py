@@ -63,52 +63,6 @@ for cell in ws_uasys['AA']:
         print('Cell is read only!')
     except:
         print('Unknown error')
-# Get INST_ESTABLISHED_DATE for PRIMARY_INSTITUTION_NAME from Google search
-# work on denied access and headless evasion
-# print('Looking up Institution established dates.........')
-# for cell in ws_uasys['V']:
-#     PRIMARY_INSTITUTION_NAME = str(cell.value).upper()
-#     found_word1 = PRIMARY_INSTITUTION_NAME.find('BARBER')
-#     found_word2 = PRIMARY_INSTITUTION_NAME.find('BEAUTY')
-#     found_word3 = PRIMARY_INSTITUTION_NAME.find('HAIR')
-#     found_word4 = PRIMARY_INSTITUTION_NAME.find('SALON')
-#     found_word5 = PRIMARY_INSTITUTION_NAME.find('SPA')
-#     if found_word1 or found_word2 or found_word3 or found_word4 or found_word5 < 0:
-#         try:
-#             cell_prev = int(cell.row) - 1
-#             if cell_prev != 0 and PRIMARY_INSTITUTION_NAME != ws_uasys['V' + str(cell_prev)].value.upper():
-#                 print(PRIMARY_INSTITUTION_NAME + ' was founded:')
-#                 if ws_uasys['AG' + str(cell.row)].value is None:
-#                     ssl._create_default_https_context = ssl._create_unverified_context
-#                     chrome_options = uc.ChromeOptions()
-#
-#                     url = 'https://google.com/search?q=' + '"' + str(PRIMARY_INSTITUTION_NAME) + '"' + ' / Founded'
-#                     driver = uc.Chrome(options=chrome_options)
-#                     driver.get(url)
-#                     wait = random.randrange(1, 10)
-#                     time.sleep(wait)
-#                     request_result = driver.page_source
-#                     driver.quit()
-#                     web_data = bs4.BeautifulSoup(request_result, "html5lib")
-#                     try:
-#                         DATE = web_data.find('div', class_='Z0LcW t2b5Cf').text
-#                         INST_ESTABLISHED_DATE = DATE
-#                         print(INST_ESTABLISHED_DATE)
-#                         ws_uasys['AG' + str(cell.row)].value = str(INST_ESTABLISHED_DATE) + '-01-01'
-#                         wb_uasys.save(raw_file)
-#                     except AttributeError:
-#                         print("----------------------------------")
-#                         print('NoneType for: ' + str(cell.value))
-#                     except TypeError:
-#                         print('Cell is read only!')
-#                     except:
-#                         print('Unknown error')
-#         except TypeError:
-#             print('That was a merged or empty cell skipping......')
-#         except AttributeError:
-#             print('NoneType for this cell')
-#         except:
-#             print('unknown error')
 # Move/delete substrings from INST_ADDRESS_LINE_1 and moving them into respective column row
 for cell in ws_uasys['V']:
     governing_address = str(cell.value).split()
@@ -165,7 +119,6 @@ for cell in ws_uasys['U']:
         print('NoneType')
     except:
         print('Unknown error')
-
 # if INST_RECORD_SOURCE is blank then assign N/A
 for cell in ws_uasys['AJ']:
     try:

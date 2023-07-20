@@ -53,7 +53,18 @@ for cell in ws_uasys['AP']:
     COIN_dapid = ws_uasys['AL' + str(cell.row)].value
     COIN_opeid = ws_uasys['AM' + str(cell.row)].value
     COIN_ipedid = ws_uasys['AN' + str(cell.row)].value
-
+    if COIN_dapid is None and COIN_opeid is None and COIN_ipedid is None:
+        institution_name = ws_uasys['U' + str(cell.row)].value
+        try:
+            if institution_name == CAMP_OFFICIAL_INSTITUTION_NAME:
+                pop_dapid = str(ws_uasys['R' + str(cell.row)].value)
+                pop_opeid = str(ws_uasys['S' + str(cell.row)].value)
+                pop_ipedid = str(ws_uasys['T' + str(cell.row)].value)
+                ws_uasys['AL' + str(cell.row)].value = pop_dapid
+                ws_uasys['AM' + str(cell.row)].value = pop_opeid
+                ws_uasys['AN' + str(cell.row)].value = pop_ipedid
+        except AttributeError:
+            print('NoneType object has no attribute')
 # Get CAMP_PO_BOX_LINE and CAMP_PhoneNumberFull from CAMP_OFFICIAL_INSTITUTION_NAME against LocationName fields
 for cell in ws_uasys['AP']:
     organization_name = str(cell.value)
@@ -144,59 +155,95 @@ for cell in ws_uasys['AQ']:
         ws_uasys['AX' + str(cell.row)].value = 'USA'
         ws_uasys['AY' + str(cell.row)].value = POSTAL_CODE
         ws_uasys['AZ' + str(cell.row)].value = PhoneNumberFull
-# Checking NCES for phonenumber if none is present
-# Fix this
-# for cell in ws_uasys['AQ']:
-#     campus_name = str(cell.value)
-#     for check in ws_uasys['AZ']:
-#         if check.value is None:
-#             print('No phone number from Accreditation Database : Searching')
-#             for look in ws_nces_grab['B']:
-#                 nces_institution = str(look.value)
-#                 if nces_institution.upper() == campus_name.upper():
-#                     print('Found a phone number number!')
-#                     CAMP_PhoneNumberFull = str(ws_nces_grab['L' + str(look.row)].value)
-#                     ws_uasys['AZ' + str(cell.row)].value = CAMP_PhoneNumberFull
-# Get INST_ESTABLISHED_DATE for PRIMARY_INSTITUTION_NAME from Google search
-# print('Looking up Institution established dates.........')
-# for cell in ws_uasys['AP']:
-#     PRIMARY_INSTITUTION_NAME = str(cell.value).upper()
-#     if "BARBER" or "BEAUTY" or "HAIR" or "SALON" in PRIMARY_INSTITUTION_NAME is False:
-#         try:
-#             cell_prev = int(cell.row) - 1
-#             if cell_prev != 0 and PRIMARY_INSTITUTION_NAME != ws_uasys['U' + str(cell_prev)].value.upper():
-#                 print(PRIMARY_INSTITUTION_NAME + ' was founded:')
-#                 if ws_uasys['AF' + str(cell.row)].value is None:
-#                     ssl._create_default_https_context = ssl._create_unverified_context
-#                     chrome_options = uc.ChromeOptions()
-#
-#                     url = 'https://google.com/search?q=' + '"' + str(PRIMARY_INSTITUTION_NAME) + '"' + ' / Founded'
-#                     driver = uc.Chrome(options=chrome_options)
-#                     driver.get(url)
-#                     wait = random.randrange(1, 10)
-#                     time.sleep(wait)
-#                     request_result = driver.page_source
-#                     driver.quit()
-#                     web_data = bs4.BeautifulSoup(request_result, "html5lib")
-#                     try:
-#                         DATE = web_data.find('div', class_='Z0LcW t2b5Cf').text
-#                         INST_ESTABLISHED_DATE = DATE
-#                         print(INST_ESTABLISHED_DATE)
-#                         ws_uasys['AF' + str(cell.row)].value = str(INST_ESTABLISHED_DATE) + '-01-01'
-#                         wb_uasys.save(raw_file)
-#                     except AttributeError:
-#                         print("----------------------------------")
-#                         print('NoneType for: ' + str(cell.value))
-#                     except TypeError:
-#                         print('NoneType')
-#                     except:
-#                         print('Unknown error')
-#         except TypeError:
-#             print('That was a merged or empty cell skipping......')
-#         except AttributeError:
-#             print('Cell is read only!')
-#         except:
-#             print('Unknown error')
+# Move/delete substrings from CAMP_ADDRESS_LINE_1 and moving them into respective column row
+for cell in ws_uasys['AS']:
+    governing_address = str(cell.value).split()
+    for index in range(len(governing_address)):
+        word = governing_address[index]
+        if word == 'Ste' or word == 'Ste.' or word == 'STE' or word == 'STE.' or word == 'Unit' or word == 'PO' or word == 'Suite':
+            GOV_ADDRESS_LINE_2 = str(' '.join(governing_address[index:len(governing_address)]))
+            found_pobox = GOV_ADDRESS_LINE_2.find('PO Box')
+            if found_pobox == -1:
+                ws_uasys['AU' + str(cell.row)].value = GOV_ADDRESS_LINE_2.upper()
+            else:
+                ws_uasys['AT' + str(cell.row)].value = GOV_ADDRESS_LINE_2
+                ws_uasys['AU' + str(cell.row)].value = 'N/A'
+            ADDRESS_LINE_1 = str(cell.value)
+            phrase_removal = ADDRESS_LINE_1.find(GOV_ADDRESS_LINE_2)
+            if phrase_removal != -1:
+                ws_uasys['AS' + str(cell.row)].value = ADDRESS_LINE_1.strip(GOV_ADDRESS_LINE_2)
+        elif word == 'Floor' or word == 'Fl':
+            floor_num = index - 1
+            GOV_ADDRESS_LINE_2 = str(' '.join(governing_address[floor_num:len(governing_address)]))
+            ws_uasys['AT' + str(cell.row)].value = GOV_ADDRESS_LINE_2.upper()
+            ADDRESS_LINE_1 = str(cell.value)
+            phrase_removal = ADDRESS_LINE_1.find(GOV_ADDRESS_LINE_2)
+            if phrase_removal != -1:
+                ws_uasys['AS' + str(cell.row)].value = ADDRESS_LINE_1.strip(GOV_ADDRESS_LINE_2)
+# Move/delete substrings from CAMP_ADDRESS_LINE_2,
+for cell in ws_uasys['AU']:
+    CAMP_PO_BOX_LINE = str(cell.value).split()
+    word = CAMP_PO_BOX_LINE[0]
+    if word != 'PO' or word != 'N/A':
+        if word.find('STE') == -1:
+            try:
+                ADDRESS_LINE_2 = ws_uasys['AT' + str(cell.row)].value
+                ws_uasys['AU' + str(cell.row)].value = ADDRESS_LINE_2
+                ws_uasys['AT' + str(cell.row)].value = 'N/A'
+                ws_uasys['AT2'].value = 'CAMP_ADDRESS_LINE_2'
+            except AttributeError:
+                print('MergedCell object attribute value is read-only')
+        else:
+            CAMP_POSTAL_CODE = ws_uasys['AV' + str(cell.row)].value
+            CAMP_MUNICIPALITY = ws_uasys['AU' + str(cell.row)].value
+            ws_uasys['AY' + str(cell.row)].value = CAMP_POSTAL_CODE
+            ws_uasys['AV' + str(cell.row)].value = CAMP_MUNICIPALITY
+            ws_uasys['AU' + str(cell.row)].value = 'N/A'
+for cell in ws_uasys['AY']:
+    POSTAL_CODE = str(cell.value)
+    try:
+        if POSTAL_CODE.isalpha() and POSTAL_CODE != 'N/A':
+            CAMP_MUNICIPALITY = ws_uasys['AY' + str(cell.row)].value
+            CAMP_ADDRESS_LINE_2 = ws_uasys['AV' + str(cell.row)].value
+            ws_uasys['AT' + str(cell.row)].value = CAMP_ADDRESS_LINE_2
+            ws_uasys['AV' + str(cell.row)].value = CAMP_MUNICIPALITY
+            ws_uasys['AY' + str(cell.row)].value = ''
+        if cell.value == 'N/A':
+            CAMP_POSTAL_CODE = ws_uasys['AV' + str(cell.row)].value
+            ADDRESS_LINE_2 = ws_uasys['AU' + str(cell.row)].value
+            ws_uasys['AY' + str(cell.row)].value = CAMP_POSTAL_CODE
+            ws_uasys['AT' + str(cell.row)].value = ADDRESS_LINE_2
+            ws_uasys['AU' + str(cell.row)].value = 'N/A'
+            ws_uasys['AU2'].value = 'CAMP_PO_BOX_LINE'
+            ws_uasys['AV' + str(cell.row)].value = ''
+        postal_code_list = str(cell.value).split()
+        word = postal_code_list[0]
+        if word.isalpha() and len(word) <= 2:
+            STATE_REGION_SHORT = str(word).strip('[]')
+            ws_uasys['AW' + str(cell.row)].value = STATE_REGION_SHORT
+            ws_uasys['AY' + str(cell.row)].value = str(cell.value).strip(STATE_REGION_SHORT)
+    except IndexError:
+        print('list index out of range')
+    except AttributeError:
+        print('MergedCell object attribute value is read-only')
+# If CAMP_CAMPUS_NAME is the same as PRIMARY_INSTITUTION_NAME change camp name to Main Campus
+for cell in ws_uasys['AQ']:
+    campus_name = str(cell.value)
+    campus_name_list = str(cell.value).split()
+    institution_name = ws_uasys['U' + str(cell.row)].value
+    try:
+        for index in range(len(campus_name_list)):
+            word = campus_name_list[index]
+            first_at = word.find('at')
+            second_AT = word.find('AT')
+            if first_at == 0 or second_AT == 0:
+                first_word = index + 1
+                campus_name = str(' '.join(campus_name_list[first_word:len(campus_name_list)]))
+                ws_uasys['AQ' + str(cell.row)].value = campus_name
+        if campus_name.upper() == institution_name.upper():
+            ws_uasys['AQ' + str(cell.row)].value = 'Main Campus'
+    except AttributeError:
+        print('NoneType object has no attribute upper')
 # Check to see if campus is inactive/closed according to NCES database
 for cell in ws_uasys['AP']:
     organization_name = str(cell.value)
