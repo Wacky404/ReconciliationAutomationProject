@@ -208,7 +208,7 @@ for cell in ws_uasys['AY']:
             ws_uasys['AT' + str(cell.row)].value = CAMP_ADDRESS_LINE_2
             ws_uasys['AV' + str(cell.row)].value = CAMP_MUNICIPALITY
             ws_uasys['AY' + str(cell.row)].value = ''
-        if cell.value == 'N/A':
+        if cell.value == 'N/A' or cell.value == 'N/':
             CAMP_POSTAL_CODE = ws_uasys['AV' + str(cell.row)].value
             ADDRESS_LINE_2 = ws_uasys['AU' + str(cell.row)].value
             ws_uasys['AY' + str(cell.row)].value = CAMP_POSTAL_CODE
