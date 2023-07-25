@@ -254,6 +254,7 @@ for cell in ws_uasys['AP']:
             found_two = str(institution_closed).find('-2')
             if found_two < 0:
                 ws_uasys['BD' + str(cell.row)].value = institution_closed
+                ws_uasys['BC' + str(cell.row)].value = 'Y'
 # If CAMPUS_RECORD_SOURCE is blank then assign the cell N/A
 for cell in ws_uasys['BE']:
     try:
