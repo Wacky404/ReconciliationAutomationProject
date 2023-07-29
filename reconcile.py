@@ -1,4 +1,5 @@
-from openpyxl import workbook, load_workbook
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
 import re
 import time
 import openai
@@ -86,7 +87,8 @@ class DataFile:
             governing_address = str(cell.value).split()
             for index in range(len(governing_address)):
                 word = governing_address[index]
-                if word == 'Ste' or word == 'Ste.' or word == 'Unit' or word == 'PO' or word == 'Suite':
+                if word == 'Ste' or word == 'Ste.' or word == 'Unit' or word == 'PO' or word == 'Suite' \
+                        or word == 'Building':
                     inst_address_line_1 = str(' '.join(governing_address[index:len(governing_address)]))
                     found_pobox = inst_address_line_1.find('PO Box')
                     if found_pobox == -1:
@@ -151,6 +153,139 @@ class DataFile:
                 print('Unknown error')
         print('Done!')
         wb_uasys.save(raw_file)
+
+    @classmethod
+    def clean_institution(cls, wb_uasys, ws_uasys, raw_file):
+        for cell in ws_uasys['R']:
+            try:
+                if cell.value is None:
+                    ws_uasys['R' + str(cell.row)].value = "NULL"
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['S']:
+            try:
+                if cell.value is None:
+                    ws_uasys['S' + str(cell.row)].value = "NULL"
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['T']:
+            try:
+                if cell.value is None:
+                    ws_uasys['T' + str(cell.row)].value = "NULL"
+            except:
+                print('Error with cell')
+        yellow = 'FFFF00'
+        red = 'FF6666'
+        y_highlight = PatternFill(patternType='solid', fgColor=yellow)
+        r_highlight = PatternFill(patternType='solid', fgColor=red)
+        for cell in ws_uasys['Q']:
+            try:
+                if cell.value is None:
+                    ws_uasys['Q' + str(cell.row)].value = 'AutoGen'
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['R']:
+            try:
+                if cell.row >= 3:
+                    gov_id = str(cell.value)
+                    gov_id_oped = str(ws_uasys['S' + str(cell.row)].value)
+                    gov_id_iped = str(ws_uasys['T' + str(cell.row)].value)
+                    if not gov_id.isnumeric():
+                        ws_uasys['R' + str(cell.row)].fill = r_highlight
+                    if not gov_id_oped.isnumeric():
+                        ws_uasys['S' + str(cell.row)].fill = r_highlight
+                    if not gov_id_iped.isnumeric():
+                        ws_uasys['T' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['U']:
+            try:
+                ws_uasys['U' + str(cell.row)].value = str(cell.value).upper()
+                if cell.value is None:
+                    ws_uasys['U' + str(cell.row)].fill = y_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['V']:
+            try:
+                ws_uasys['V' + str(cell.row)].value = str(cell.value).upper()
+                if cell.value is None:
+                    ws_uasys['V' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['W']:
+            try:
+                address_one = cell.value
+                if address_one is None:
+                    ws_uasys['W' + str(cell.row)].value = 'N/A'
+                if address_one.find('PO') != -1:
+                    ws_uasys['W' + str(cell.row)].fill = y_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['X']:
+            try:
+                address_two = str(cell.value)
+                if cell.value is None:
+                    ws_uasys['X' + str(cell.row)].value = 'N/A'
+                    wb_uasys.save(raw_file)
+                if address_two.find('PO') == -1 and address_two != 'N/A':
+                    ws_uasys['X' + str(cell.row)].fill = y_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['Y']:
+            try:
+                ws_uasys['Y' + str(cell.row)].value = str(cell.value).upper()
+                if cell.value is None:
+                    ws_uasys['Y' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['Z']:
+            try:
+                if cell.row >= 3:
+                    region = str(cell.value)
+                    if len(region) != 2:
+                        ws_uasys['Z' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['AA']:
+            try:
+                if cell.value is None:
+                    ws_uasys['AA' + str(cell.row)].value = 'USA'
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['AB']:
+            try:
+                if cell.value is None:
+                    ws_uasys['AB' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['AC']:
+            try:
+                if cell.value is None:
+                    ws_uasys['AC' + str(cell.row)].fill = y_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['AF']:
+            if cell.row >= 3:
+                try:
+                    if cell.value == 'Manually Find' or cell.value is None:
+                        ws_uasys['AF' + str(cell.row)].fill = y_highlight
+                except:
+                    print('Error with cell')
+        for cell in ws_uasys['AG']:
+            if cell.row >= 3:
+                try:
+                    if cell.value == 'Manually Find' or cell.value is None:
+                        ws_uasys['AG' + str(cell.row)].fill = y_highlight
+                except:
+                    print('Error with cell')
+        for cell in ws_uasys['AJ']:
+            try:
+                if cell.value is None:
+                    ws_uasys['AJ' + str(cell.row)].value = "N/A"
+            except:
+                print('Error with cell')
+        wb_uasys.save(raw_file)
+        print('Done!')
 
     @classmethod
     def ai_institution(cls, wb_uasys, ws_uasys, raw_file):
@@ -532,6 +667,120 @@ class DataFile:
         wb_uasys.save(raw_file)
 
     @classmethod
+    def clean_governing(cls, wb_uasys, ws_uasys, raw_file):
+        for cell in ws_uasys['B']:
+            try:
+                if cell.value is None:
+                    ws_uasys['B' + str(cell.row)].value = "NULL"
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['C']:
+            try:
+                if cell.value is None:
+                    ws_uasys['C' + str(cell.row)].value = "NULL"
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['D']:
+            try:
+                if cell.value is None:
+                    ws_uasys['D' + str(cell.row)].value = "NULL"
+            except:
+                print('Error with cell')
+        yellow = 'FFFF00'
+        red = 'FF6666'
+        y_highlight = PatternFill(patternType='solid', fgColor=yellow)
+        r_highlight = PatternFill(patternType='solid', fgColor=red)
+        for cell in ws_uasys['A']:
+            if cell.row >= 3:
+                try:
+                    org_id = str(cell.value)
+                    if org_id != 'AutoGen':
+                        ws_uasys['A' + str(cell.row)].value = 'AutoGen'
+                except:
+                    print('Error with cell')
+        for cell in ws_uasys['B']:
+            try:
+                if cell.row >= 3:
+                    gov_id = str(cell.value)
+                    gov_id_oped = str(ws_uasys['C' + str(cell.row)].value)
+                    gov_id_iped = str(ws_uasys['D' + str(cell.row)].value)
+                    if not gov_id.isnumeric():
+                        ws_uasys['B' + str(cell.row)].fill = r_highlight
+                    if not gov_id_oped.isnumeric():
+                        ws_uasys['C' + str(cell.row)].fill = r_highlight
+                    if not gov_id_iped.isnumeric():
+                        ws_uasys['D' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['E']:
+            try:
+                ws_uasys['E' + str(cell.row)].value = str(cell.value).upper()
+                if cell.value is None:
+                    ws_uasys['E' + str(cell.row)].fill = y_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['F']:
+            try:
+                ws_uasys['F' + str(cell.row)].value = str(cell.value).upper()
+                if cell.value is None:
+                    ws_uasys['F' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['G']:
+            try:
+                if cell.value is None:
+                    ws_uasys['G' + str(cell.row)].value = "N/A"
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['H']:
+            try:
+                if cell.value is None:
+                    ws_uasys['H' + str(cell.row)].value = "N/A"
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['I']:
+            try:
+                ws_uasys['I' + str(cell.row)].value = str(cell.value).upper()
+                if cell.value is None:
+                    ws_uasys['I' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['J']:
+            try:
+                if cell.row >= 3:
+                    region = str(cell.value)
+                    if len(region) != 2:
+                        ws_uasys['J' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['K']:
+            try:
+                if cell.value is None:
+                    ws_uasys['K' + str(cell.row)].value = 'USA'
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['L']:
+            try:
+                if cell.value is None:
+                    ws_uasys['L' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['M']:
+            try:
+                if cell.value is None:
+                    ws_uasys['M' + str(cell.row)].fill = y_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['P']:
+            try:
+                if cell.value is None:
+                    ws_uasys['P' + str(cell.row)].value = "N/A"
+            except:
+                print('Error with cell')
+        wb_uasys.save(raw_file)
+        print('Done!')
+
+    @classmethod
     def reconcile_campuslocation(cls, wb_uasys, ws_uasys, raw_file, abbrev, ws_data_grab, ws_nces_grab):
         # If CAMPUS_LOCATION_ID is blank then assign the cell AutoGen
         for cell in ws_uasys['AK']:
@@ -805,6 +1054,140 @@ class DataFile:
                 print('Unknown error')
         print('Done!')
         wb_uasys.save(raw_file)
+
+    @classmethod
+    def clean_campuslocation(cls, wb_uasys, ws_uasys, raw_file):
+        for cell in ws_uasys['AK']:
+            try:
+                if cell.value is None:
+                    ws_uasys['AK' + str(cell.row)].value = 'AutoGen'
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['AL']:
+            try:
+                if cell.value is None:
+                    ws_uasys['AL' + str(cell.row)].value = "NULL"
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['AM']:
+            try:
+                if cell.value is None:
+                    ws_uasys['AM' + str(cell.row)].value = "NULL"
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['AN']:
+            try:
+                if cell.value is None:
+                    ws_uasys['AN' + str(cell.row)].value = "NULL"
+            except:
+                print('Error with cell')
+        yellow = 'FFFF00'
+        red = 'FF6666'
+        y_highlight = PatternFill(patternType='solid', fgColor=yellow)
+        r_highlight = PatternFill(patternType='solid', fgColor=red)
+        for cell in ws_uasys['AL']:
+            try:
+                if cell.row >= 3:
+                    gov_id = str(cell.value)
+                    gov_id_oped = str(ws_uasys['AM' + str(cell.row)].value)
+                    gov_id_iped = str(ws_uasys['AN' + str(cell.row)].value)
+                    if not gov_id.isnumeric():
+                        ws_uasys['AL' + str(cell.row)].fill = r_highlight
+                    if not gov_id_oped.isnumeric():
+                        ws_uasys['AM' + str(cell.row)].fill = r_highlight
+                    if not gov_id_iped.isnumeric():
+                        ws_uasys['AN' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['AP']:
+            try:
+                ws_uasys['AP' + str(cell.row)].value = str(cell.value).upper()
+                if cell.value is None:
+                    ws_uasys['AP' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['AS']:
+            try:
+                ws_uasys['AS' + str(cell.row)].value = str(cell.value).upper()
+                if cell.value is None:
+                    ws_uasys['AS' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['AT']:
+            try:
+                address_one = cell.value
+                if address_one is None:
+                    ws_uasys['AT' + str(cell.row)].value = 'N/A'
+                if address_one.find('PO') != -1:
+                    ws_uasys['AT' + str(cell.row)].fill = y_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['AU']:
+            if cell.row >= 3:
+                try:
+                    address_two = str(cell.value)
+                    if cell.value is None:
+                        ws_uasys['AU' + str(cell.row)].value = 'N/A'
+                        wb_uasys.save(raw_file)
+                    if address_two.find('PO') == -1 and address_two != 'N/A':
+                        ws_uasys['AU' + str(cell.row)].fill = y_highlight
+                except:
+                    print('Error with cell')
+        for cell in ws_uasys['AV']:
+            try:
+                ws_uasys['AV' + str(cell.row)].value = str(cell.value).upper()
+                if cell.value is None:
+                    ws_uasys['AV' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['AW']:
+            try:
+                if cell.row >= 3:
+                    region = str(cell.value)
+                    if len(region) != 2:
+                        ws_uasys['AW' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['AX']:
+            try:
+                if cell.value is None:
+                    ws_uasys['AX' + str(cell.row)].value = 'USA'
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['AY']:
+            try:
+                if cell.value is None:
+                    ws_uasys['AY' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['AZ']:
+            try:
+                if cell.value is None:
+                    ws_uasys['AZ' + str(cell.row)].fill = y_highlight
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['BA']:
+            if cell.row >= 3:
+                try:
+                    if cell.value == 'Manually Find' or cell.value is None:
+                        ws_uasys['BA' + str(cell.row)].fill = y_highlight
+                except:
+                    print('Error with cell')
+        for cell in ws_uasys['BB']:
+            if cell.row >= 3:
+                try:
+                    if cell.value == 'Manually Find' or cell.value is None:
+                        ws_uasys['BB' + str(cell.row)].fill = y_highlight
+                except:
+                    print('Error with cell')
+        for cell in ws_uasys['BE']:
+            try:
+                if cell.value is None:
+                    ws_uasys['BE' + str(cell.row)].value = "N/A"
+            except:
+                print('Error with cell')
+        wb_uasys.save(raw_file)
+        print('Done!')
 
     @classmethod
     def ai_campuslocation(cls, wb_uasys, ws_uasys, raw_file):
