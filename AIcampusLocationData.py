@@ -85,15 +85,4 @@ import openai
 #             time.sleep(1)
 # wb_uasys.save(raw_file)
 
-API_KEY = open(r"C:\Users\Wayne Cole\Downloads\Work Stuff\API Key.txt").read()
-openai.api_key = API_KEY
-response = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",
-    messages=[
-        {"role": "system", "content": "You are a data analyst reconciling missing data."},
-        {"role": "user", "content": "Is the University of Arkansas at Little Rock, Arkansas open?"}
-    ]
-)
-reply_content = response.choices[0].message.content
-print(reply_content)
 
