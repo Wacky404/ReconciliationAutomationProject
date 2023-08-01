@@ -268,14 +268,14 @@ class DataFile:
             if cell.row >= 3:
                 try:
                     if cell.value == 'Manually Find' or cell.value is None:
-                        ws_uasys['AF' + str(cell.row)].fill = y_highlight
+                        ws_uasys['AF' + str(cell.row)].fill = r_highlight
                 except:
                     print('Error with cell')
         for cell in ws_uasys['AG']:
             if cell.row >= 3:
                 try:
                     if cell.value == 'Manually Find' or cell.value is None:
-                        ws_uasys['AG' + str(cell.row)].fill = y_highlight
+                        ws_uasys['AG' + str(cell.row)].fill = r_highlight
                 except:
                     print('Error with cell')
         for cell in ws_uasys['AJ']:
@@ -768,7 +768,7 @@ class DataFile:
         for cell in ws_uasys['M']:
             try:
                 if cell.value is None:
-                    ws_uasys['M' + str(cell.row)].fill = y_highlight
+                    ws_uasys['M' + str(cell.row)].fill = r_highlight
             except:
                 print('Error with cell')
         for cell in ws_uasys['P']:
@@ -1163,7 +1163,7 @@ class DataFile:
         for cell in ws_uasys['AZ']:
             try:
                 if cell.value is None:
-                    ws_uasys['AZ' + str(cell.row)].fill = y_highlight
+                    ws_uasys['AZ' + str(cell.row)].fill = r_highlight
             except:
                 print('Error with cell')
         for cell in ws_uasys['BA']:

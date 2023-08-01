@@ -1,29 +1,56 @@
 from reconcile import DataFile as df
 
-tennessee = df(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Tennessee Educational Institutions 2023-05-26.xlsx"
-               , "All Tennessee Institutions", "TN")
-tennessee.clean_governing(tennessee.wb_uasys, tennessee.ws_uasys, tennessee.raw_file)
-tennessee.clean_institution(tennessee.wb_uasys, tennessee.ws_uasys, tennessee.raw_file)
-tennessee.clean_campuslocation(tennessee.wb_uasys, tennessee.ws_uasys, tennessee.raw_file)
+amount = int(input('How many states are you reconciling/cleansing?(integer) '))
+i = 0
+while i < amount:
+    state = []
+    user_state = input('Name of state: ')
+    state.append(user_state)
 
-texas = df(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Texas Educational Institutions 2023-05-26.xlsx"
-           , "All Texas Institutions", "TX")
-texas.clean_governing(texas.wb_uasys, texas.ws_uasys, texas.raw_file)
-texas.clean_institution(texas.wb_uasys, texas.ws_uasys, texas.raw_file)
-texas.clean_campuslocation(texas.wb_uasys, texas.ws_uasys, texas.raw_file)
+    file_location = []
+    user_file_location = str(input('File location of workbook(.xlsx): '))
+    file_location.append(user_file_location)
 
-california = df(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy California Educational Institutions 2023-06-20.xlsx"
-                , "All California InstitutionsTest", "CA")
-california.clean_governing(california.wb_uasys, california.ws_uasys, california.raw_file)
-california.clean_institution(california.wb_uasys, california.ws_uasys, california.raw_file)
-california.clean_campuslocation(california.wb_uasys, california.ws_uasys, california.raw_file)
+    worksheet = []
+    user_worksheet = str(input('Exact worksheet name: '))
+    worksheet.append(user_worksheet)
 
-mississippi = df(r"C:\Users\Wayne Cole\Downloads\Work Stuff\Copy Mississippi Educational Institutions 2023-05-26.xlsx"
-                 , "All Mississippi Institution T1", "MS")
-mississippi.clean_governing(mississippi.wb_uasys, mississippi.ws_uasys, mississippi.raw_file)
-mississippi.clean_institution(mississippi.wb_uasys, mississippi.ws_uasys, mississippi.raw_file)
-mississippi.clean_campuslocation(mississippi.wb_uasys, mississippi.ws_uasys, mississippi.raw_file)
+    abrev_state = []
+    user_abrev_state = str(input('State abbreviation: '))
+    abrev_state.append(user_abrev_state)
+    i += 1
+go = True
+while go:
+    user_choice = int(input('Do you want to Reconcile --> 1 | Reconcile+Cleanse --> 2 | Cleanse --> 3 '))
+    if user_choice == 1:
+        for i in range(len(state)):
+            state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
+            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.ws_data_grab, df.ws_nces_grab)
+            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev, df.ws_data_grab, df.ws_nces_grab)
+            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev, df.ws_data_grab, df.ws_nces_grab)
+    elif user_choice == 2:
+        for i in range(len(state)):
+            state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
+            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.ws_data_grab, df.ws_nces_grab)
+            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev, df.ws_data_grab, df.ws_nces_grab)
+            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev, df.ws_data_grab, df.ws_nces_grab)
 
+            print('Reconcile is done moving on to cleaning....')
+
+            state[i].clean_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
+            state[i].clean_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
+            state[i].clean_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
+    elif user_choice == 3:
+        for i in range(len(state)):
+            state[i] = df(file_location[i], worksheet[i], abrev_state[i])
+
+            state[i].clean_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
+            state[i].clean_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
+            state[i].clean_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
+    else:
+        print('You did not input any integer between 1 - 3, please try again')
+
+    go = bool(input('Do you want to exit: Yes --> 0 | No --> 1'))
 
