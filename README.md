@@ -29,3 +29,7 @@ This script has it's functionality housed under a single class, called DataFile,
 > > - ai_x
 
 Find and edit the neccessary method in order to fix any bugs that might appear along the data pipeline or add additional functionality! 
+
+*MIT License*
+
+*Copyright (c) 2023 Wacky404*
