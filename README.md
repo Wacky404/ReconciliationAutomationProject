@@ -28,4 +28,4 @@ This script has it's functionality housed under a single class, called DataFile,
 > > - cleanse_x
 > > - ai_x
 
-Find and edit the neccessary method in order to fix any bugs that might appear along the data pipeline or add to additional functionality! 
+Find and edit the neccessary method in order to fix any bugs that might appear along the data pipeline or add additional functionality! 
