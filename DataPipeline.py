@@ -52,5 +52,5 @@ while go:
     else:
         print('You did not input any integer between 1 - 3, please try again')
 
-    go = bool(input('Do you want to exit: Yes --> 0 | No --> 1'))
+    go = bool(input('Do you want to exit: Yes --> 1 | No --> 0 '))
 
