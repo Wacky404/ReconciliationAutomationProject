@@ -25,8 +25,8 @@ This script has it's functionality housed under a single class, called DataFile,
 > 
 > - class methods
 > > - reconcile_x
-> > - cleanse_x
 > > - ai_x
+> > - cleanse_x
 
 Find and edit the neccessary method in order to fix any bugs that might appear along the data pipeline or add additional functionality! 
 
