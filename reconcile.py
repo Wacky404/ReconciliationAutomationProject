@@ -384,7 +384,7 @@ class DataFile:
                 if cell.value is None:
                     ws_uasys['A' + str(cell.row)].value = "AutoGen"
             except AttributeError:
-                print(cell + ' is read only!')
+                print('Cell is read only!')
             except TypeError:
                 print('Cell is read only!')
             except:
@@ -395,38 +395,33 @@ class DataFile:
         for cell in ws_uasys['U']:
             institute_name = str(cell.value)
             print("----------------------------------")
-            print(cell.value)
+            print(institute_name)
 
             for grab in ws_data_grab['D']:
                 location_name = str(grab.value)
 
                 if location_name.upper() == institute_name.upper():
-                    char = 'D'
-                    p_char = chr(ord(char) + 1)
-                    parent_name = str(ws_data_grab[p_char + str(grab.row)].value)
+                    parent_name = str(ws_data_grab['E' + str(grab.row)].value)
 
                     if parent_name == "-":
-                        parent_name = str(ws_data_grab['D' + str(grab.row)].value)
+                        ws_uasys['E' + str(cell.row)].value = institute_name
 
                     ws_uasys['E' + str(cell.row)].value = parent_name
-                    print(ws_uasys['E' + str(cell.row)].value)
+                    print('Placed in governing: ' + ws_uasys['E' + str(cell.row)].value)
                     print("----------------------------------")
         print("Populating associated fields.....hold on.....")
         # Get Governing_Organization_Name's DAPIP, OPE, and IPEDSID IDs from data_grab
         for cell in ws_uasys['E']:
             institution_govern = str(cell.value)
 
-            for grab in ws_data_grab['D']:
+            for grab in ws_data_grab['E']:
                 location_name = str(grab.value)
 
                 if location_name.upper() == institution_govern.upper():
-                    GOV_DAPID = str(ws_data_grab['A' + str(grab.row)].value)
-                    GOV_OPEID = str(ws_data_grab['B' + str(grab.row)].value)
-                    GOV_IPEDID = str(ws_data_grab['C' + str(grab.row)].value)
-
+                    GOV_DAPID = str(ws_data_grab['F' + str(grab.row)].value)
                     ws_uasys['B' + str(cell.row)].value = GOV_DAPID
-                    ws_uasys['C' + str(cell.row)].value = GOV_OPEID
-                    ws_uasys['D' + str(cell.row)].value = GOV_IPEDID
+                    ws_uasys['C' + str(cell.row)].value = 'NULL'
+                    ws_uasys['D' + str(cell.row)].value = 'NULL'
         # Get GOV address line 1, GOV_MUNICIPALITY, GOV postal code
         for cell in ws_uasys['E']:
             institution_govern = str(cell.value)

@@ -80,9 +80,12 @@ while go:
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
             state[i].ai_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
-            state[i].ai_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
 
-            print('AI is done for ' + str(state[i]))
+            print('AI is done for ' + str(state[i]) + ' institution')
+
+            # state[i].ai_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
+
+            # print('AI is done for ' + str(state[i]))
     else:
         print('You did not input any integer between 1 - 5, please try again')
 
