@@ -2,6 +2,7 @@ from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 import re
 import time
+import sys
 import openai
 
 
@@ -236,8 +237,7 @@ class DataFile:
                 ws_uasys['Y' + str(cell.row)].value = str(cell.value).upper()
                 if cell.value is None:
                     ws_uasys['Y' + str(cell.row)].fill = r_highlight
-            except:
-                print('Error with cell')
+            except: print('Error with cell')
         for cell in ws_uasys['Z']:
             try:
                 if cell.row >= 3:
@@ -289,7 +289,11 @@ class DataFile:
 
     @classmethod
     def ai_institution(cls, wb_uasys, ws_uasys, raw_file):
+        max_row = ws_uasys.max_row
         for cell in ws_uasys['U']:
+            progress = cell.row/max_row
+            sys.stdout.write('\r')
+            sys.stdout.write("[%-20s] %d%%" % ('=' * int(max_row * progress), float(cell.row/max_row)*100))
             try:
                 if cell.row >= 3:
                     cell_prev = int(cell.row) - 1
@@ -298,7 +302,7 @@ class DataFile:
                     state = str(ws_uasys['Z' + str(cell.row)].value)
                     if institution_name != ws_uasys['U' + str(cell_prev)].value and ws_uasys[
                         'AF' + str(cell.row)].value is None:
-                        API_KEY = open(r"C:\Users\Wayne Cole\Downloads\Work Stuff\API Key.txt").read()
+                        API_KEY = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
                         openai.api_key = API_KEY
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
@@ -323,7 +327,7 @@ class DataFile:
                         if DataFile.has_numbers(reply_content):
                             ws_uasys['AF' + str(cell.row)].value = str(reply_content)
                         else:
-                            ws_uasys['AF' + str(cell.row)].value = 'Manually Find'
+                            ws_uasys['AF' + str(cell.row)].value = 'NULL'
                         wb_uasys.save(raw_file)
                         time.sleep(1)
                 wb_uasys.save(raw_file)
@@ -331,8 +335,16 @@ class DataFile:
                 print('Bad Gateway')
             except openai.error.ServiceUnavailableError:
                 print('Server Overload')
+            except TimeoutError:
+                print('Read Operation Timeout')
+            except:
+                print('Server overload')
+            sys.stdout.flush()
 
         for cell in ws_uasys['U']:
+            progress = cell.row/max_row
+            sys.stdout.write('\r')
+            sys.stdout.write("[%-20s] %d%%" % ('=' * int(max_row * progress), float(cell.row/max_row)*100))
             try:
                 if cell.row >= 3:
                     cell_prev = int(cell.row) - 1
@@ -341,7 +353,7 @@ class DataFile:
                     state = str(ws_uasys['Z' + str(cell.row)].value)
                     if institution_name != ws_uasys['U' + str(cell_prev)].value and ws_uasys[
                         'AG' + str(cell.row)].value is None:
-                        API_KEY = open(r"C:\Users\Wayne Cole\Downloads\Work Stuff\API Key.txt").read()
+                        API_KEY = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
                         openai.api_key = API_KEY
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
@@ -367,7 +379,7 @@ class DataFile:
                         if DataFile.has_numbers(reply_content):
                             ws_uasys['AG' + str(cell.row)].value = str(reply_content)
                         else:
-                            ws_uasys['AG' + str(cell.row)].value = 'Manually Find'
+                            ws_uasys['AG' + str(cell.row)].value = 'NULL'
                         wb_uasys.save(raw_file)
                         time.sleep(1)
                 wb_uasys.save(raw_file)
@@ -375,6 +387,11 @@ class DataFile:
                 print('Bad Gateway')
             except openai.error.ServiceUnavailableError:
                 print('Server Overload')
+            except TimeoutError:
+                print('Read Operation Timeout')
+            except:
+                print('Server Overload')
+            sys.stdout.flush()
 
     @classmethod
     def reconcile_governing(cls, wb_uasys, ws_uasys, raw_file, abbrev, ws_data_grab, ws_nces_grab):
@@ -396,36 +413,39 @@ class DataFile:
             institute_name = str(cell.value)
             print("----------------------------------")
             print(institute_name)
-
             for grab in ws_data_grab['D']:
                 location_name = str(grab.value)
-
                 if location_name.upper() == institute_name.upper():
                     parent_name = str(ws_data_grab['E' + str(grab.row)].value)
-
-                    if parent_name == "-":
+                    if parent_name == "-" and ws_uasys['F' + str(cell.row)].value is not None:
                         ws_uasys['E' + str(cell.row)].value = institute_name
-
-                    ws_uasys['E' + str(cell.row)].value = parent_name
-                    print('Placed in governing: ' + ws_uasys['E' + str(cell.row)].value)
+                    else:
+                        ws_uasys['E' + str(cell.row)].value = parent_name
+                    print('Placed in governing: ' + str(ws_uasys['E' + str(cell.row)].value))
                     print("----------------------------------")
         print("Populating associated fields.....hold on.....")
         # Get Governing_Organization_Name's DAPIP, OPE, and IPEDSID IDs from data_grab
         for cell in ws_uasys['E']:
             institution_govern = str(cell.value)
-
             for grab in ws_data_grab['E']:
                 location_name = str(grab.value)
-
                 if location_name.upper() == institution_govern.upper():
                     GOV_DAPID = str(ws_data_grab['F' + str(grab.row)].value)
                     ws_uasys['B' + str(cell.row)].value = GOV_DAPID
-                    ws_uasys['C' + str(cell.row)].value = 'NULL'
-                    ws_uasys['D' + str(cell.row)].value = 'NULL'
+                    ws_uasys['C' + str(cell.row)].value = 'SEARCH'
+                    ws_uasys['D' + str(cell.row)].value = 'SEARCH'
+            dapid_check = str(ws_uasys['B' + str(cell.row)].value)
+            if dapid_check == '-':
+                govern_zipcode = str(ws_uasys['L' + str(cell.row)].value)
+                for look in ws_nces_grab['B']:
+                    match_institution = str(look.value)
+                    nces_zipcode = str(ws_nces_grab['K' + str(look.row)].value)
+                    if match_institution.upper() == institution_govern.upper() and govern_zipcode == nces_zipcode:
+                        found_zipcode = str(ws_nces_grab['A' + str(look.row)].value)
+                        ws_uasys['B' + str(cell.row)].value = found_zipcode
         # Get GOV address line 1, GOV_MUNICIPALITY, GOV postal code
         for cell in ws_uasys['E']:
             institution_govern = str(cell.value)
-
             for grab in ws_data_grab['D']:
                 location_name = str(grab.value)
                 if location_name.upper() == institution_govern.upper():
@@ -531,6 +551,7 @@ class DataFile:
                             if nces_institution.upper() == institution_govern.upper():
                                 phoneNumber_grab = str(ws_nces_grab['L' + str(grab.row)].value)
                                 ws_uasys['M' + str(cell.row)].value = phoneNumber_grab
+                                print('Found phone number in NCES Database')
         # Check to see if GOV_ORG is inactive/closed according to NCES database
         for cell in ws_uasys['E']:
             institution_govern = str(cell.value)
@@ -660,7 +681,6 @@ class DataFile:
                 print('Unknown error')
         print('Done!')
         wb_uasys.save(raw_file)
-
     @classmethod
     def clean_governing(cls, wb_uasys, ws_uasys, raw_file):
         for cell in ws_uasys['B']:
@@ -794,11 +814,27 @@ class DataFile:
                 try:
                     CAMP_OFFICIAL_INSTITUTION_NAME = ws_uasys['U' + str(cell.row)].value
                     ws_uasys['AP' + str(cell.row)].value = CAMP_OFFICIAL_INSTITUTION_NAME.upper()
-                    ws_uasys['AQ' + str(cell.row)].value = CAMP_OFFICIAL_INSTITUTION_NAME.upper()
                 except AttributeError:
                     print('NoneType object has no attribute upper')
-        # Get CAMP_OFFICIAL_INSTITUTION_NAME CAMP_OPED_ID and CAMP_IPED_ID from LocationName OpeId and IpedsUnitIds
-        for cell in ws_uasys['AP']:
+        # for column AQ find the additional location for column AP and address for the location
+        for cell in ws_uasys['AQ']:
+            if cell.row >= 3:
+                try:
+                    lookup_institution = ws_uasys['AP' + str(cell.row)].value
+                    for grab in ws_data_grab['E']:
+                        if grab.value.upper == lookup_institution.upper:
+                            additional_location = ws_data_grab['D' + str(grab.row)].value
+                            address_additionalLocation = ws_data_grab['H' + str(grab.row)].value
+                            ws_uasys['AQ' + str(cell.row)].value = str(additional_location).upper
+                            ws_uasys['AS' + str(cell.row)].value = str(address_additionalLocation).upper
+                except AttributeError:
+                    print('Cell is read only!')
+                except TypeError:
+                    print('Cell is read only!')
+                except:
+                    print('Unknown error')
+        # Get CAMP_CAMPUS_NAME CAMP_OPED_ID and CAMP_IPED_ID from LocationName OpeId and IpedsUnitIds
+        for cell in ws_uasys['AQ']:
             organization_name = str(cell.value)
             print("----------------------------------")
             print('Populating ' + organization_name + ' fields.....')
@@ -811,16 +847,16 @@ class DataFile:
                     ws_uasys['AL' + str(cell.row)].value = CAMP_DAPID
                     ws_uasys['AM' + str(cell.row)].value = CAMP_OPED_ID
                     ws_uasys['AN' + str(cell.row)].value = CAMP_IPED_ID
-        # for any CAMP_OFFICIAL_INSTITUTION_NAME ids that aren't populated by accred, find data in institution
-        for cell in ws_uasys['AP']:
-            CAMP_OFFICIAL_INSTITUTION_NAME = str(cell.value)
+        # for any CAMP_CAMPUS_NAME ids that aren't populated by accred, find data in institution
+        for cell in ws_uasys['AQ']:
+            CAMP_CAMPUS_NAME = str(cell.value)
             COIN_dapid = ws_uasys['AL' + str(cell.row)].value
             COIN_opeid = ws_uasys['AM' + str(cell.row)].value
             COIN_ipedid = ws_uasys['AN' + str(cell.row)].value
             if COIN_dapid is None and COIN_opeid is None and COIN_ipedid is None:
                 institution_name = ws_uasys['U' + str(cell.row)].value
                 try:
-                    if institution_name == CAMP_OFFICIAL_INSTITUTION_NAME:
+                    if institution_name == CAMP_CAMPUS_NAME:
                         pop_dapid = str(ws_uasys['R' + str(cell.row)].value)
                         pop_opeid = str(ws_uasys['S' + str(cell.row)].value)
                         pop_ipedid = str(ws_uasys['T' + str(cell.row)].value)
@@ -846,8 +882,8 @@ class DataFile:
                 print('Cell is read only!')
             except:
                 print('Unknown error')
-        # Get CAMP_PO_BOX_LINE and CAMP_PhoneNumberFull from CAMP_OFFICIAL_INSTITUTION_NAME against LocationName fields
-        for cell in ws_uasys['AP']:
+        # Get CAMP_PO_BOX_LINE and CAMP_PhoneNumberFull from CAMP_CAMPUS_NAME against LocationName fields
+        for cell in ws_uasys['AQ']:
             organization_name = str(cell.value)
             for grab in ws_data_grab['D']:
                 location_name = str(grab.value)
@@ -928,6 +964,7 @@ class DataFile:
                 STATE_REGION_SHORT = ws_uasys['Z' + str(cell.row)].value
                 POSTAL_CODE = ws_uasys['AB' + str(cell.row)].value
                 PhoneNumberFull = ws_uasys['AC' + str(cell.row)].value
+                ws_uasys['AQ' + str(cell.row)].value = 'MAIN CAMPUS'
                 ws_uasys['AS' + str(cell.row)].value = ADDRESS_LINE_1
                 ws_uasys['AT' + str(cell.row)].value = ADDRESS_LINE_2
                 ws_uasys['AU' + str(cell.row)].value = PO_BOX_LINE
@@ -1007,26 +1044,8 @@ class DataFile:
                 print('list index out of range')
             except AttributeError:
                 print('MergedCell object attribute value is read-only')
-        # If CAMP_CAMPUS_NAME is the same as PRIMARY_INSTITUTION_NAME change camp name to Main Campus
-        for cell in ws_uasys['AQ']:
-            campus_name = str(cell.value)
-            campus_name_list = str(cell.value).split()
-            institution_name = ws_uasys['U' + str(cell.row)].value
-            try:
-                for index in range(len(campus_name_list)):
-                    word = campus_name_list[index]
-                    first_at = word.find('at')
-                    second_AT = word.find('AT')
-                    if first_at == 0 or second_AT == 0:
-                        first_word = index + 1
-                        campus_name = str(' '.join(campus_name_list[first_word:len(campus_name_list)]))
-                        ws_uasys['AQ' + str(cell.row)].value = campus_name
-                if campus_name.upper() == institution_name.upper():
-                    ws_uasys['AQ' + str(cell.row)].value = 'Main Campus'
-            except AttributeError:
-                print('NoneType object has no attribute upper')
         # Check to see if campus is inactive/closed according to NCES database
-        for cell in ws_uasys['AP']:
+        for cell in ws_uasys['AQ']:
             organization_name = str(cell.value)
             for look in ws_nces_grab['B']:
                 nces_institution = str(look.value)
@@ -1186,7 +1205,11 @@ class DataFile:
 
     @classmethod
     def ai_campuslocation(cls, wb_uasys, ws_uasys, raw_file):
+        max_row = ws_uasys.max_row
         for cell in ws_uasys['AP']:
+            progress = cell.row/max_row
+            sys.stdout.write('\r')
+            sys.stdout.write("[%-20s] %d%%" % ('=' * int(max_row * progress), float(cell.row/max_row)*100))
             try:
                 if cell.row >= 3:
                     cell_prev = int(cell.row) - 1
@@ -1195,7 +1218,7 @@ class DataFile:
                     state = str(ws_uasys['AW' + str(cell.row)].value)
                     if institution_name != ws_uasys['AP' + str(cell_prev)].value and ws_uasys[
                         'BA' + str(cell.row)].value is None:
-                        API_KEY = open(r"C:\Users\Wayne Cole\Downloads\Work Stuff\API Key.txt").read()
+                        API_KEY = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
                         openai.api_key = API_KEY
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
@@ -1218,7 +1241,7 @@ class DataFile:
                         if DataFile.has_numbers(reply_content):
                             ws_uasys['BA' + str(cell.row)].value = str(reply_content)
                         else:
-                            ws_uasys['BA' + str(cell.row)].value = 'Manually Find'
+                            ws_uasys['BA' + str(cell.row)].value = 'NULL'
                         wb_uasys.save(raw_file)
                         time.sleep(1)
                 wb_uasys.save(raw_file)
@@ -1226,8 +1249,16 @@ class DataFile:
                 print('Bad Gateway')
             except openai.error.ServiceUnavailableError:
                 print('Server overload')
+            except TimeoutError:
+                print('Read Operation Timeout')
+            except:
+                print('Server Overload')
+            sys.stdout.flush()
 
         for cell in ws_uasys['AP']:
+            progress = cell.row/max_row
+            sys.stdout.write('\r')
+            sys.stdout.write("[%-20s] %d%%" % ('=' * int(max_row * progress), float(cell.row/max_row)*100))
             try:
                 if cell.row >= 3:
                     cell_prev = int(cell.row) - 1
@@ -1236,7 +1267,7 @@ class DataFile:
                     state = str(ws_uasys['AW' + str(cell.row)].value)
                     if institution_name != ws_uasys['AP' + str(cell_prev)].value and ws_uasys[
                         'BB' + str(cell.row)].value is None:
-                        API_KEY = open(r"C:\Users\Wayne Cole\Downloads\Work Stuff\API Key.txt").read()
+                        API_KEY = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
                         openai.api_key = API_KEY
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
@@ -1262,7 +1293,7 @@ class DataFile:
                         if DataFile.has_numbers(reply_content):
                             ws_uasys['BB' + str(cell.row)].value = str(reply_content)
                         else:
-                            ws_uasys['BB' + str(cell.row)].value = 'Manually Find'
+                            ws_uasys['BB' + str(cell.row)].value = 'NULL'
                         wb_uasys.save(raw_file)
                         time.sleep(1)
                 wb_uasys.save(raw_file)
@@ -1270,3 +1301,8 @@ class DataFile:
                 print('Bad Gateway')
             except openai.error.ServiceUnavailableError:
                 print('Server overload')
+            except TimeoutError:
+                print('Read Operation Timeout')
+            except:
+                print('Server Overload')
+            sys.stdout.flush()
