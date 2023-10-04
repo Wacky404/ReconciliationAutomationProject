@@ -89,8 +89,8 @@ while go:
     else:
         print('You did not input any integer between 1 - 5, please try again')
 
-    go = int(input('Do you want to exit: Yes --> 0 | No --> 1 '))
-    if go > 0:
+    exit = int(input('Do you want to exit: Yes --> 0 | No --> 1 '))
+    if exit == 1:
        continue
     else:
        break

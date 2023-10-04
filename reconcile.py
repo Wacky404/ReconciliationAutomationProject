@@ -681,6 +681,7 @@ class DataFile:
                 print('Unknown error')
         print('Done!')
         wb_uasys.save(raw_file)
+        
     @classmethod
     def clean_governing(cls, wb_uasys, ws_uasys, raw_file):
         for cell in ws_uasys['B']:
@@ -825,8 +826,10 @@ class DataFile:
                         if grab.value.upper == lookup_institution.upper:
                             additional_location = ws_data_grab['D' + str(grab.row)].value
                             address_additionalLocation = ws_data_grab['H' + str(grab.row)].value
-                            ws_uasys['AQ' + str(cell.row)].value = str(additional_location).upper
-                            ws_uasys['AS' + str(cell.row)].value = str(address_additionalLocation).upper
+                            prev_additional_location = ws_uasys['AQ' + str(cell.row - 1)].value
+                            if additional_location.upper != prev_additonal_location.upper: 
+                                ws_uasys['AQ' + str(cell.row)].value = str(additional_location).upper
+                                ws_uasys['AS' + str(cell.row)].value = str(address_additionalLocation).upper
                 except AttributeError:
                     print('Cell is read only!')
                 except TypeError:
