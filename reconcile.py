@@ -826,8 +826,9 @@ class DataFile:
                         if grab.value.upper == lookup_institution.upper:
                             additional_location = ws_data_grab['D' + str(grab.row)].value
                             address_additionalLocation = ws_data_grab['H' + str(grab.row)].value
-                            prev_additional_location = ws_uasys['AQ' + str(cell.row - 1)].value
-                            if additional_location.upper != prev_additonal_location.upper: 
+                            cell_prev = int(cell.row) - 1
+                            prev_additional_location = ws_uasys['AQ' + str(cell_prev)].value
+                            if additional_location.upper != prev_additional_location.upper:
                                 ws_uasys['AQ' + str(cell.row)].value = str(additional_location).upper
                                 ws_uasys['AS' + str(cell.row)].value = str(address_additionalLocation).upper
                                 wb_uasys.save(raw_file)

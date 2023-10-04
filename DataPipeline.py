@@ -26,18 +26,24 @@ while go:
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
-            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev, df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev, df.ws_data_grab, df.ws_nces_grab)
+            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.ws_data_grab,
+                                           df.ws_nces_grab)
+            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
+                                         df.ws_data_grab, df.ws_nces_grab)
+            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
+                                              df.ws_data_grab, df.ws_nces_grab)
 
             print('Reconcile is done for ' + str(state[i]))
     elif user_choice == 2:
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
-            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev, df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev, df.ws_data_grab, df.ws_nces_grab)
+            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.ws_data_grab,
+                                           df.ws_nces_grab)
+            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
+                                         df.ws_data_grab, df.ws_nces_grab)
+            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
+                                              df.ws_data_grab, df.ws_nces_grab)
 
             print('Reconcile is done for ' + str(state[i]) + ' moving on to cleaning....')
 
@@ -59,9 +65,12 @@ while go:
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
-            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev, df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev, df.ws_data_grab, df.ws_nces_grab)
+            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.ws_data_grab,
+                                           df.ws_nces_grab)
+            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
+                                         df.ws_data_grab, df.ws_nces_grab)
+            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
+                                              df.ws_data_grab, df.ws_nces_grab)
 
             print('Reconcile is done for ' + str(state[i]) + ' moving on to AI....')
 
@@ -91,6 +100,6 @@ while go:
 
     exit = int(input('Do you want to exit: Yes --> 0 | No --> 1 '))
     if exit == 1:
-       continue
+        continue
     else:
-       break
+        break
