@@ -830,6 +830,7 @@ class DataFile:
                             if additional_location.upper != prev_additonal_location.upper: 
                                 ws_uasys['AQ' + str(cell.row)].value = str(additional_location).upper
                                 ws_uasys['AS' + str(cell.row)].value = str(address_additionalLocation).upper
+                                wb_uasys.save(raw_file)
                 except AttributeError:
                     print('Cell is read only!')
                 except TypeError:
