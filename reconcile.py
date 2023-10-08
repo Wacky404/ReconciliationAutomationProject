@@ -330,6 +330,10 @@ class DataFile:
                             ws_uasys['AF' + str(cell.row)].value = 'NULL'
                         wb_uasys.save(raw_file)
                         time.sleep(1)
+                    elif institution_name == ws_uasys['U' + str(cell_prev)].value and ws_uasys[
+                        'AF' + str(cell.row)].value is None:
+                        last_entry = str(ws_uasys['AF' + str(cell_prev)].value)
+                        ws_uasys['AF' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
             except openai.error.APIError:
                 print('Bad Gateway')
@@ -382,6 +386,10 @@ class DataFile:
                             ws_uasys['AG' + str(cell.row)].value = 'NULL'
                         wb_uasys.save(raw_file)
                         time.sleep(1)
+                    elif institution_name == ws_uasys['U' + str(cell_prev)].value and ws_uasys[
+                        'AG' + str(cell.row)].value is None:
+                        last_entry = str(ws_uasys['AG' + str(cell_prev)].value)
+                        ws_uasys['AG' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
             except openai.error.APIError:
                 print('Bad Gateway')
@@ -1244,6 +1252,10 @@ class DataFile:
                             ws_uasys['BA' + str(cell.row)].value = 'NULL'
                         wb_uasys.save(raw_file)
                         time.sleep(1)
+                    elif institution_name == ws_uasys['AP' + str(cell_prev)].value and ws_uasys[
+                        'BA' + str(cell.row)].value is None:
+                        last_entry = str(ws_uasys['BA' + str(cell_prev)].value)
+                        ws_uasys['BA' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
             except openai.error.APIError:
                 print('Bad Gateway')
@@ -1296,6 +1308,10 @@ class DataFile:
                             ws_uasys['BB' + str(cell.row)].value = 'NULL'
                         wb_uasys.save(raw_file)
                         time.sleep(1)
+                    elif institution_name == ws_uasys['AP' + str(cell_prev)].value and ws_uasys[
+                        'BB' + str(cell.row)].value is None:
+                        last_entry = str(ws_uasys['BB' + str(cell_prev)].value)
+                        ws_uasys['BB' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
             except openai.error.APIError:
                 print('Bad Gateway')
