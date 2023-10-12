@@ -1,6 +1,7 @@
 # ReconciliationAutomationProject
 
 ## Project Description
+### Public Information and Non-Sensitive Data Sources
 
 This is a data pipeline script that takes an Excel worksheet's data through reconciliation and cleansing using the ope.ed.gov 
 and nces database alongside Openpyxl and the OpenAI API. The development of this script was goal oriented and followed the 
