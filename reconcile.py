@@ -4,6 +4,7 @@ import re
 import time
 import sys
 import openai
+import googlemaps
 
 
 class DataFile:
@@ -302,7 +303,7 @@ class DataFile:
                     state = str(ws_uasys['Z' + str(cell.row)].value)
                     if institution_name != ws_uasys['U' + str(cell_prev)].value and ws_uasys[
                         'AF' + str(cell.row)].value is None:
-                        API_KEY = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
+                        API_KEY = open(r"C:\Users\Wayne Cole\Downloads\Work Stuff\API Key.txt").read()
                         openai.api_key = API_KEY
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
@@ -330,8 +331,7 @@ class DataFile:
                             ws_uasys['AF' + str(cell.row)].value = 'NULL'
                         wb_uasys.save(raw_file)
                         time.sleep(1)
-                    elif institution_name == ws_uasys['U' + str(cell_prev)].value and ws_uasys[
-                        'AF' + str(cell.row)].value is None:
+                    elif institution_name == ws_uasys['U' + str(cell_prev)].value:
                         last_entry = str(ws_uasys['AF' + str(cell_prev)].value)
                         ws_uasys['AF' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
@@ -357,7 +357,7 @@ class DataFile:
                     state = str(ws_uasys['Z' + str(cell.row)].value)
                     if institution_name != ws_uasys['U' + str(cell_prev)].value and ws_uasys[
                         'AG' + str(cell.row)].value is None:
-                        API_KEY = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
+                        API_KEY = open(r"C:\Users\Wayne Cole\Downloads\Work Stuff\API Key.txt").read()
                         openai.api_key = API_KEY
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
@@ -386,8 +386,7 @@ class DataFile:
                             ws_uasys['AG' + str(cell.row)].value = 'NULL'
                         wb_uasys.save(raw_file)
                         time.sleep(1)
-                    elif institution_name == ws_uasys['U' + str(cell_prev)].value and ws_uasys[
-                        'AG' + str(cell.row)].value is None:
+                    elif institution_name == ws_uasys['U' + str(cell_prev)].value:
                         last_entry = str(ws_uasys['AG' + str(cell_prev)].value)
                         ws_uasys['AG' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
@@ -1231,7 +1230,7 @@ class DataFile:
                     state = str(ws_uasys['AW' + str(cell.row)].value)
                     if institution_name != ws_uasys['AP' + str(cell_prev)].value and ws_uasys[
                         'BA' + str(cell.row)].value is None:
-                        API_KEY = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
+                        API_KEY = open(r"C:\Users\Wayne Cole\Downloads\Work Stuff\API Key.txt").read()
                         openai.api_key = API_KEY
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
@@ -1257,8 +1256,7 @@ class DataFile:
                             ws_uasys['BA' + str(cell.row)].value = 'NULL'
                         wb_uasys.save(raw_file)
                         time.sleep(1)
-                    elif institution_name == ws_uasys['AP' + str(cell_prev)].value and ws_uasys[
-                        'BA' + str(cell.row)].value is None:
+                    elif institution_name == ws_uasys['AP' + str(cell_prev)].value:
                         last_entry = str(ws_uasys['BA' + str(cell_prev)].value)
                         ws_uasys['BA' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
@@ -1284,7 +1282,7 @@ class DataFile:
                     state = str(ws_uasys['AW' + str(cell.row)].value)
                     if institution_name != ws_uasys['AP' + str(cell_prev)].value and ws_uasys[
                         'BB' + str(cell.row)].value is None:
-                        API_KEY = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
+                        API_KEY = open(r"C:\Users\Wayne Cole\Downloads\Work Stuff\API Key.txt").read()
                         openai.api_key = API_KEY
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
@@ -1313,8 +1311,7 @@ class DataFile:
                             ws_uasys['BB' + str(cell.row)].value = 'NULL'
                         wb_uasys.save(raw_file)
                         time.sleep(1)
-                    elif institution_name == ws_uasys['AP' + str(cell_prev)].value and ws_uasys[
-                        'BB' + str(cell.row)].value is None:
+                    elif institution_name == ws_uasys['AP' + str(cell_prev)].value:
                         last_entry = str(ws_uasys['BB' + str(cell_prev)].value)
                         ws_uasys['BB' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
