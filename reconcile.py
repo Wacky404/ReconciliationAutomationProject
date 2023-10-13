@@ -4,8 +4,6 @@ import re
 import time
 import sys
 import openai
-import googlemaps
-
 
 class DataFile:
     wb_data_grab = load_workbook("AccreditationData.xlsx")
