@@ -5,6 +5,7 @@ import time
 import sys
 import openai
 
+
 class DataFile:
     wb_data_grab = load_workbook("AccreditationData.xlsx")
     wb_nces_grab = load_workbook("Data_3-14-2023---623.xlsx")
@@ -236,7 +237,8 @@ class DataFile:
                 ws_uasys['Y' + str(cell.row)].value = str(cell.value).upper()
                 if cell.value is None:
                     ws_uasys['Y' + str(cell.row)].fill = r_highlight
-            except: print('Error with cell')
+            except:
+                print('Error with cell')
         for cell in ws_uasys['Z']:
             try:
                 if cell.row >= 3:
@@ -290,9 +292,9 @@ class DataFile:
     def ai_institution(cls, wb_uasys, ws_uasys, raw_file):
         max_row = ws_uasys.max_row
         for cell in ws_uasys['U']:
-            progress = cell.row/max_row
+            progress = cell.row / max_row
             sys.stdout.write('\r')
-            sys.stdout.write("[%-20s] %d%%" % ('=' * int(max_row * progress), float(cell.row/max_row)*100))
+            sys.stdout.write("[%-20s] %d%%" % ('=' * int(max_row * progress), float(cell.row / max_row) * 100))
             try:
                 if cell.row >= 3:
                     cell_prev = int(cell.row) - 1
@@ -344,9 +346,9 @@ class DataFile:
             sys.stdout.flush()
 
         for cell in ws_uasys['U']:
-            progress = cell.row/max_row
+            progress = cell.row / max_row
             sys.stdout.write('\r')
-            sys.stdout.write("[%-20s] %d%%" % ('=' * int(max_row * progress), float(cell.row/max_row)*100))
+            sys.stdout.write("[%-20s] %d%%" % ('=' * int(max_row * progress), float(cell.row / max_row) * 100))
             try:
                 if cell.row >= 3:
                     cell_prev = int(cell.row) - 1
@@ -686,7 +688,7 @@ class DataFile:
                 print('Unknown error')
         print('Done!')
         wb_uasys.save(raw_file)
-        
+
     @classmethod
     def clean_governing(cls, wb_uasys, ws_uasys, raw_file):
         for cell in ws_uasys['B']:
@@ -741,12 +743,67 @@ class DataFile:
             except:
                 print('Error with cell')
         for cell in ws_uasys['F']:
-            try:
-                ws_uasys['F' + str(cell.row)].value = str(cell.value).upper()
-                if cell.value is None:
-                    ws_uasys['F' + str(cell.row)].fill = r_highlight
-            except:
-                print('Error with cell')
+            if cell.row >= 3:
+                try:
+                    ws_uasys['F' + str(cell.row)].value = str(cell.value).upper()
+                    if cell.value is None:
+                        ws_uasys['F' + str(cell.row)].fill = r_highlight
+
+                    full_spellings = {
+                        'rd': 'road',
+                        'rd.': 'road',
+                        'ave': 'avenue',
+                        'ave.': 'avenue',
+                        'dr': 'drive',
+                        'dr.': 'drive',
+                        'st': 'street',
+                        'st.': 'street',
+                        'str': 'street',
+                        'hwy': 'highway',
+                        'hwy.': 'highway',
+                        'blvd': 'boulevard',
+                        'blvd.': 'boulevard',
+                        'tr': 'trail',
+                        'tr.': 'trail',
+                        'n': 'north',
+                        'n.': 'north',
+                        'e': 'east',
+                        'e.': 'east',
+                        's': 'south',
+                        's.': 'south',
+                        'w': 'west',
+                        'w.': 'west',
+                        'sw': 'southwest',
+                        's.w.': 'southwest',
+                        's.w': 'southwest',
+                        'se': 'southeast',
+                        's.e.': 'southeast',
+                        's.e': 'southeast',
+                        'nw': 'northwest',
+                        'n.w.': 'northwest',
+                        'n.w': 'northwest',
+                        'ne': 'northeast',
+                        'n.e.': 'northeast',
+                        'n.e': 'northeast',
+                        'pky': 'parkway',
+                        'pky.': 'parkway',
+                        'sr': 'state highway system',
+                        'sr.': 'state highway system',
+                        'us': 'united states',
+                        'u.s.': 'united states',
+                        'u.s': 'united states'
+                    }
+                    gov_address = str(ws_uasys['F' + str(cell.row)].value).lower()
+                    sep_address = gov_address.split()
+                    for key in full_spellings:
+                        for index in range(len(sep_address)):
+                            word = sep_address[index]
+                            if word == key:
+                                sep_address[index] = full_spellings[key]
+                                gov_address = str(' '.join(sep_address))
+                                ws_uasys['F' + str(cell.row)].value = gov_address.upper()
+                except:
+                    print('Error with cell')
         for cell in ws_uasys['G']:
             try:
                 if cell.value is None:
@@ -1217,9 +1274,9 @@ class DataFile:
     def ai_campuslocation(cls, wb_uasys, ws_uasys, raw_file):
         max_row = ws_uasys.max_row
         for cell in ws_uasys['AP']:
-            progress = cell.row/max_row
+            progress = cell.row / max_row
             sys.stdout.write('\r')
-            sys.stdout.write("[%-20s] %d%%" % ('=' * int(max_row * progress), float(cell.row/max_row)*100))
+            sys.stdout.write("[%-20s] %d%%" % ('=' * int(max_row * progress), float(cell.row / max_row) * 100))
             try:
                 if cell.row >= 3:
                     cell_prev = int(cell.row) - 1
@@ -1269,9 +1326,9 @@ class DataFile:
             sys.stdout.flush()
 
         for cell in ws_uasys['AP']:
-            progress = cell.row/max_row
+            progress = cell.row / max_row
             sys.stdout.write('\r')
-            sys.stdout.write("[%-20s] %d%%" % ('=' * int(max_row * progress), float(cell.row/max_row)*100))
+            sys.stdout.write("[%-20s] %d%%" % ('=' * int(max_row * progress), float(cell.row / max_row) * 100))
             try:
                 if cell.row >= 3:
                     cell_prev = int(cell.row) - 1
