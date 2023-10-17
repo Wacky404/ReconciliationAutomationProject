@@ -11,6 +11,50 @@ class DataFile:
     wb_nces_grab = load_workbook("Data_3-14-2023---623.xlsx")
     ws_data_grab = wb_data_grab["InstituteCampuses"]
     ws_nces_grab = wb_nces_grab["Data_3-14-2023---623"]
+    full_spellings = {
+        'rd': 'road',
+        'rd.': 'road',
+        'ave': 'avenue',
+        'ave.': 'avenue',
+        'dr': 'drive',
+        'dr.': 'drive',
+        'st': 'street',
+        'st.': 'street',
+        'str': 'street',
+        'hwy': 'highway',
+        'hwy.': 'highway',
+        'blvd': 'boulevard',
+        'blvd.': 'boulevard',
+        'tr': 'trail',
+        'tr.': 'trail',
+        'n': 'north',
+        'n.': 'north',
+        'e': 'east',
+        'e.': 'east',
+        's': 'south',
+        's.': 'south',
+        'w': 'west',
+        'w.': 'west',
+        'sw': 'southwest',
+        's.w.': 'southwest',
+        's.w': 'southwest',
+        'se': 'southeast',
+        's.e.': 'southeast',
+        's.e': 'southeast',
+        'nw': 'northwest',
+        'n.w.': 'northwest',
+        'n.w': 'northwest',
+        'ne': 'northeast',
+        'n.e.': 'northeast',
+        'n.e': 'northeast',
+        'pky': 'parkway',
+        'pky.': 'parkway',
+        'sr': 'state highway system',
+        'sr.': 'state highway system',
+        'us': 'united states',
+        'u.s.': 'united states',
+        'u.s': 'united states'
+    }
 
     def __init__(self, raw_file, sheet_name, abbrev):
         self.raw_file = raw_file
@@ -690,7 +734,7 @@ class DataFile:
         wb_uasys.save(raw_file)
 
     @classmethod
-    def clean_governing(cls, wb_uasys, ws_uasys, raw_file):
+    def clean_governing(cls, wb_uasys, ws_uasys, raw_file, full_spellings):
         for cell in ws_uasys['B']:
             try:
                 if cell.value is None:
@@ -748,51 +792,6 @@ class DataFile:
                     ws_uasys['F' + str(cell.row)].value = str(cell.value).upper()
                     if cell.value is None:
                         ws_uasys['F' + str(cell.row)].fill = r_highlight
-
-                    full_spellings = {
-                        'rd': 'road',
-                        'rd.': 'road',
-                        'ave': 'avenue',
-                        'ave.': 'avenue',
-                        'dr': 'drive',
-                        'dr.': 'drive',
-                        'st': 'street',
-                        'st.': 'street',
-                        'str': 'street',
-                        'hwy': 'highway',
-                        'hwy.': 'highway',
-                        'blvd': 'boulevard',
-                        'blvd.': 'boulevard',
-                        'tr': 'trail',
-                        'tr.': 'trail',
-                        'n': 'north',
-                        'n.': 'north',
-                        'e': 'east',
-                        'e.': 'east',
-                        's': 'south',
-                        's.': 'south',
-                        'w': 'west',
-                        'w.': 'west',
-                        'sw': 'southwest',
-                        's.w.': 'southwest',
-                        's.w': 'southwest',
-                        'se': 'southeast',
-                        's.e.': 'southeast',
-                        's.e': 'southeast',
-                        'nw': 'northwest',
-                        'n.w.': 'northwest',
-                        'n.w': 'northwest',
-                        'ne': 'northeast',
-                        'n.e.': 'northeast',
-                        'n.e': 'northeast',
-                        'pky': 'parkway',
-                        'pky.': 'parkway',
-                        'sr': 'state highway system',
-                        'sr.': 'state highway system',
-                        'us': 'united states',
-                        'u.s.': 'united states',
-                        'u.s': 'united states'
-                    }
                     gov_address = str(ws_uasys['F' + str(cell.row)].value).lower()
                     sep_address = gov_address.split()
                     for key in full_spellings:
