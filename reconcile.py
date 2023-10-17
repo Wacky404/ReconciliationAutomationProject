@@ -200,7 +200,7 @@ class DataFile:
         wb_uasys.save(raw_file)
 
     @classmethod
-    def clean_institution(cls, wb_uasys, ws_uasys, raw_file):
+    def clean_institution(cls, wb_uasys, ws_uasys, raw_file, full_spellings):
         for cell in ws_uasys['R']:
             try:
                 if cell.value is None:
@@ -255,6 +255,14 @@ class DataFile:
                 ws_uasys['V' + str(cell.row)].value = str(cell.value).upper()
                 if cell.value is None:
                     ws_uasys['V' + str(cell.row)].fill = r_highlight
+                sep_address = gov_address.split()
+                for key in full_spellings:
+                    for index in range(len(sep_address)):
+                        word = sep_address[index]
+                        if word == key:
+                            sep_address[index] = full_spellings[key]
+                            gov_address = str(' '.join(sep_address))
+                            ws_uasys['F' + str(cell.row)].value = gov_address.upper()
             except:
                 print('Error with cell')
         for cell in ws_uasys['W']:
@@ -1136,7 +1144,7 @@ class DataFile:
         wb_uasys.save(raw_file)
 
     @classmethod
-    def clean_campuslocation(cls, wb_uasys, ws_uasys, raw_file):
+    def clean_campuslocation(cls, wb_uasys, ws_uasys, raw_file, full_spellings):
         for cell in ws_uasys['AK']:
             try:
                 if cell.value is None:
@@ -1191,6 +1199,14 @@ class DataFile:
                 ws_uasys['AS' + str(cell.row)].value = str(cell.value).upper()
                 if cell.value is None:
                     ws_uasys['AS' + str(cell.row)].fill = r_highlight
+                sep_address = gov_address.split()
+                for key in full_spellings:
+                    for index in range(len(sep_address)):
+                        word = sep_address[index]
+                        if word == key:
+                            sep_address[index] = full_spellings[key]
+                            gov_address = str(' '.join(sep_address))
+                            ws_uasys['F' + str(cell.row)].value = gov_address.upper()
             except:
                 print('Error with cell')
         for cell in ws_uasys['AT']:
