@@ -255,6 +255,7 @@ class DataFile:
                 ws_uasys['V' + str(cell.row)].value = str(cell.value).upper()
                 if cell.value is None:
                     ws_uasys['V' + str(cell.row)].fill = r_highlight
+                gov_address = str(ws_uasys['V' + str(cell.row)].value).lower()
                 sep_address = gov_address.split()
                 for key in full_spellings:
                     for index in range(len(sep_address)):
@@ -262,7 +263,7 @@ class DataFile:
                         if word == key:
                             sep_address[index] = full_spellings[key]
                             gov_address = str(' '.join(sep_address))
-                            ws_uasys['F' + str(cell.row)].value = gov_address.upper()
+                            ws_uasys['V' + str(cell.row)].value = gov_address.upper()
             except:
                 print('Error with cell')
         for cell in ws_uasys['W']:
@@ -1189,9 +1190,70 @@ class DataFile:
                 print('Error with cell')
         for cell in ws_uasys['AP']:
             try:
-                ws_uasys['AP' + str(cell.row)].value = str(cell.value).upper()
-                if cell.value is None:
-                    ws_uasys['AP' + str(cell.row)].fill = r_highlight
+                if cell.row >= 3:
+                    official_name = str(ws_uasys['U' + str(cell.row)].value).lower()
+                    change_name = str(ws_uasys['AP' + str(cell.row)].value).lower()
+                    if change_name != official_name:
+                        ws_uasys['AP' + str(cell.row)].value = official_name
+                    ws_uasys['AP' + str(cell.row)].value = str(cell.value).upper()
+                    if cell.value is None:
+                        ws_uasys['AP' + str(cell.row)].fill = r_highlight
+            except:
+                print('Error with cell')
+        wb_uasys.save(raw_file)
+        for cell in ws_uasys['AQ']:
+            campus_no = (
+                "regional",
+                "health",
+                "center",
+                "high",
+                "school",
+                "technical",
+                "inc.",
+                "inc",
+                "administration",
+                "building",
+                "office",
+                "site"
+            )
+            try:
+                if cell.row >= 3:
+                    campus_name = str(ws_uasys['AQ' + str(cell.row)].value).lower()
+                    official_name = str(ws_uasys['AP' + str(cell.row)].value).lower()
+                    if campus_name == official_name:
+                        ws_uasys['AQ' + str(cell.row)].value = "MAIN CAMPUS"
+                        ws_uasys['AR' + str(cell.row)].value = "N/A"
+                    sep_campus_name = campus_name.split()
+                    for match in campus_no:
+                        for index in range(len(sep_campus_name)):
+                            word = sep_campus_name[index]
+                            if word == match:
+                                ws_uasys['AR' + str(cell.row)].value = campus_name.upper()
+                                ws_uasys['AQ' + str(cell.row)].value = "N/A"
+                                wb_uasys.save(raw_file)
+                    sep_official_name = official_name.split()
+                    for index in range(len(sep_official_name)):
+                        remove = sep_official_name[index].lower()
+                        word = sep_campus_name[index].lower()
+                        if word == remove:
+                            sep_campus_name[index] = ''
+                        elif word == '-' or word == ',':
+                            sep_campus_name[index] = ''
+                            break
+                        elif remove.lower() == "at":
+                            break
+                    campus = str(' '.join(sep_campus_name))
+                    check_na = ws_uasys['AQ' + str(cell.row)].value
+                    if check_na != 'N/A':
+                        ws_uasys['AQ' + str(cell.row)].value = campus.upper()
+            except:
+                print('Error with cell')
+        wb_uasys.save(raw_file)
+        for cell in ws_uasys['AR']:
+            try:
+                if cell.row >= 3:
+                    if cell.value is None:
+                        ws_uasys['AR' + str(cell.row)].fill = y_highlight
             except:
                 print('Error with cell')
         for cell in ws_uasys['AS']:
@@ -1199,6 +1261,7 @@ class DataFile:
                 ws_uasys['AS' + str(cell.row)].value = str(cell.value).upper()
                 if cell.value is None:
                     ws_uasys['AS' + str(cell.row)].fill = r_highlight
+                gov_address = str(ws_uasys['AS' + str(cell.row)].value).lower()
                 sep_address = gov_address.split()
                 for key in full_spellings:
                     for index in range(len(sep_address)):
@@ -1206,7 +1269,7 @@ class DataFile:
                         if word == key:
                             sep_address[index] = full_spellings[key]
                             gov_address = str(' '.join(sep_address))
-                            ws_uasys['F' + str(cell.row)].value = gov_address.upper()
+                            ws_uasys['AS' + str(cell.row)].value = gov_address.upper()
             except:
                 print('Error with cell')
         for cell in ws_uasys['AT']:
