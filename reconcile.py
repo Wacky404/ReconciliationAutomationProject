@@ -1230,22 +1230,35 @@ class DataFile:
                             if word == match:
                                 ws_uasys['AR' + str(cell.row)].value = campus_name.upper()
                                 ws_uasys['AQ' + str(cell.row)].value = "N/A"
-                                wb_uasys.save(raw_file)
-                    sep_official_name = official_name.split()
-                    for index in range(len(sep_official_name)):
-                        remove = sep_official_name[index].lower()
-                        word = sep_campus_name[index].lower()
-                        if word == remove:
-                            sep_campus_name[index] = ''
-                        elif word == '-' or word == ',':
-                            sep_campus_name[index] = ''
-                            break
-                        elif remove.lower() == "at":
-                            break
-                    campus = str(' '.join(sep_campus_name))
-                    check_na = ws_uasys['AQ' + str(cell.row)].value
+                        wb_uasys.save(raw_file)
+                    check_na = str(ws_uasys['AQ' + str(cell.row)].value)
                     if check_na != 'N/A':
-                        ws_uasys['AQ' + str(cell.row)].value = campus.upper()
+                        official_name = re.sub('-', ' - ', official_name)
+                        official_name = re.sub(',', ' , ', official_name)
+                        sep_official_name = official_name.split()
+                        index_list = []
+                        for index in range(len(sep_official_name)):
+                            remove = sep_official_name[index].lower()
+                            word = sep_campus_name[index].lower()
+                            if word == remove:
+                                index_list.append(index)
+                            if remove == "at":
+                                index_list.append(index)
+                                break
+                        for index in range(len(sep_campus_name)):
+                            remove = sep_campus_name[index].lower()
+                            if remove == '-' or remove == ',':
+                                index_list.append(index)
+                                break
+                        for element in index_list:
+                            sep_campus_name.pop(0)
+                        campus = str(' '.join(sep_campus_name))
+                        # this is not working as intended
+                        if re.search(r'campus(?=\w)', campus):
+                            ws_uasys['AQ' + str(cell.row)].value = campus.upper()
+                        else:
+                            campus = campus + ' campus'
+                            ws_uasys['AQ' + str(cell.row)].value = campus.upper()
             except:
                 print('Error with cell')
         wb_uasys.save(raw_file)
@@ -1253,7 +1266,7 @@ class DataFile:
             try:
                 if cell.row >= 3:
                     if cell.value is None:
-                        ws_uasys['AR' + str(cell.row)].fill = y_highlight
+                        ws_uasys['AR' + str(cell.row)].value = "N/A"
             except:
                 print('Error with cell')
         for cell in ws_uasys['AS']:
