@@ -1220,19 +1220,21 @@ class DataFile:
                 if cell.row >= 3:
                     campus_name = str(ws_uasys['AQ' + str(cell.row)].value).lower()
                     official_name = str(ws_uasys['AP' + str(cell.row)].value).lower()
+                    # This isn't working as intended
                     if campus_name == official_name:
                         ws_uasys['AQ' + str(cell.row)].value = "MAIN CAMPUS"
                         ws_uasys['AR' + str(cell.row)].value = "N/A"
                     sep_campus_name = campus_name.split()
+                    wb_uasys.save(raw_file)
                     for match in campus_no:
                         for index in range(len(sep_campus_name)):
                             word = sep_campus_name[index]
                             if word == match:
                                 ws_uasys['AR' + str(cell.row)].value = campus_name.upper()
                                 ws_uasys['AQ' + str(cell.row)].value = "N/A"
-                        wb_uasys.save(raw_file)
-                    check_na = str(ws_uasys['AQ' + str(cell.row)].value)
-                    if check_na != 'N/A':
+                    wb_uasys.save(raw_file)
+                    check_na = str(ws_uasys['AQ' + str(cell.row)].value).lower()
+                    if check_na != 'n/a' or check_na != 'main campus':
                         official_name = re.sub('-', ' - ', official_name)
                         official_name = re.sub(',', ' , ', official_name)
                         sep_official_name = official_name.split()
@@ -1242,19 +1244,29 @@ class DataFile:
                             word = sep_campus_name[index].lower()
                             if word == remove:
                                 index_list.append(index)
-                            if remove == "at":
+                            elif remove == 'at':
                                 index_list.append(index)
                                 break
+                            else:
+                                break
                         for index in range(len(sep_campus_name)):
-                            remove = sep_campus_name[index].lower()
+                            remove = sep_campus_name[index]
                             if remove == '-' or remove == ',':
                                 index_list.append(index)
                                 break
-                        for element in index_list:
-                            sep_campus_name.pop(0)
-                        campus = str(' '.join(sep_campus_name))
-                        # this is not working as intended
-                        if re.search(r'campus(?=\w)', campus):
+                        remove_element = len(index_list)
+                        check_campus = str(sep_campus_name[0])
+                        check_official = str(sep_campus_name[0])
+                        if remove_element > 0 and check_campus == check_official:
+                            i = 1
+                            while i <= remove_element:
+                                sep_campus_name.pop(0)
+                                i += 1
+                        campus = str(' '.join(sep_campus_name)).lower()
+                        campus = re.sub("^-", '', campus)
+                        campus = re.sub("^,", '', campus)
+                        found_campus = campus.find('campus')
+                        if found_campus != -1:
                             ws_uasys['AQ' + str(cell.row)].value = campus.upper()
                         else:
                             campus = campus + ' campus'
