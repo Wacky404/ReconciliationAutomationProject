@@ -332,6 +332,18 @@ class DataFile:
                         ws_uasys['AG' + str(cell.row)].fill = r_highlight
                 except:
                     print('Error with cell')
+        for cell in ws_uasys['AH']:
+            try:
+                if cell.value is None:
+                    ws_uasys['AH' + str(cell.row)].value = "N"
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['AI']:
+            try:
+                if cell.value is None:
+                    ws_uasys['AI' + str(cell.row)].value = "N/A"
+            except:
+                print('Error with cell')
         for cell in ws_uasys['AJ']:
             try:
                 if cell.value is None:
@@ -857,6 +869,18 @@ class DataFile:
                     ws_uasys['M' + str(cell.row)].fill = r_highlight
             except:
                 print('Error with cell')
+        for cell in ws_uasys['N']:
+            try:
+                if cell.value is None:
+                    ws_uasys['N' + str(cell.row)].value = "N"
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['O']:
+            try:
+                if cell.value is None:
+                    ws_uasys['O' + str(cell.row)].value = "N/A"
+            except:
+                print('Error with cell')
         for cell in ws_uasys['P']:
             try:
                 if cell.value is None:
@@ -1233,7 +1257,8 @@ class DataFile:
                                 ws_uasys['AR' + str(cell.row)].value = campus_name.upper()
                                 ws_uasys['AQ' + str(cell.row)].value = "N/A"
                     wb_uasys.save(raw_file)
-                    check_na = str(ws_uasys['AQ' + str(cell.row)].value).lower()
+                    check_na = str(ws_uasys['AQ' + str(cell.row)].value)
+                    check_na = check_na.lower()
                     if check_na != 'n/a' or check_na != 'main campus':
                         official_name = re.sub('-', ' - ', official_name)
                         official_name = re.sub(',', ' , ', official_name)
@@ -1262,9 +1287,9 @@ class DataFile:
                             while i <= remove_element:
                                 sep_campus_name.pop(0)
                                 i += 1
+                        if sep_campus_name[0] == '-' or sep_campus_name[0] == ',':
+                            sep_campus_name.pop(0)
                         campus = str(' '.join(sep_campus_name)).lower()
-                        campus = re.sub("^-", '', campus)
-                        campus = re.sub("^,", '', campus)
                         found_campus = campus.find('campus')
                         if found_campus != -1:
                             ws_uasys['AQ' + str(cell.row)].value = campus.upper()
@@ -1279,6 +1304,8 @@ class DataFile:
                 if cell.row >= 3:
                     if cell.value is None:
                         ws_uasys['AR' + str(cell.row)].value = "N/A"
+                    elif cell.value != "N/A":
+                        ws_uasys['AQ' + str(cell.row)].value = "N/A"
             except:
                 print('Error with cell')
         for cell in ws_uasys['AS']:
@@ -1364,6 +1391,18 @@ class DataFile:
                         ws_uasys['BB' + str(cell.row)].fill = y_highlight
                 except:
                     print('Error with cell')
+        for cell in ws_uasys['BC']:
+            try:
+                if cell.value is None:
+                    ws_uasys['BC' + str(cell.row)].value = "N"
+            except:
+                print('Error with cell')
+        for cell in ws_uasys['BD']:
+            try:
+                if cell.value is None:
+                    ws_uasys['BD' + str(cell.row)].value = "N/A"
+            except:
+                print('Error with cell')
         for cell in ws_uasys['BE']:
             try:
                 if cell.value is None:
