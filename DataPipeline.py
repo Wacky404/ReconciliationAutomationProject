@@ -33,7 +33,7 @@ while go:
             state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
                                               df.ws_data_grab, df.ws_nces_grab)
 
-            print('Reconcile is done for ' + str(state[i]))
+            print('Reconcile is done for ' + str(*state[i]))
     elif user_choice == 2:
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
@@ -45,13 +45,13 @@ while go:
             state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
                                               df.ws_data_grab, df.ws_nces_grab)
 
-            print('Reconcile is done for ' + str(state[i]) + ' moving on to cleaning....')
+            print('Reconcile is done for ' + str(*state[i]) + ' moving on to cleaning....')
 
             state[i].clean_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
             state[i].clean_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
             state[i].clean_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
 
-            print('Clean is done for ' + str(state[i]))
+            print('Clean is done for ' + str(*state[i]))
     elif user_choice == 3:
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])

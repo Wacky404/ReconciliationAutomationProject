@@ -196,7 +196,7 @@ class DataFile:
                 print('Cell is read only!')
             except:
                 print('Unknown error')
-        print('Done!')
+        print('Done, with Reconciling Institutions!')
         wb_uasys.save(raw_file)
 
     @classmethod
@@ -368,7 +368,7 @@ class DataFile:
                     state = str(ws_uasys['Z' + str(cell.row)].value)
                     if institution_name != ws_uasys['U' + str(cell_prev)].value and ws_uasys[
                         'AF' + str(cell.row)].value is None:
-                        API_KEY = open(r"C:\Users\Wayne Cole\Downloads\Work Stuff\API Key.txt").read()
+                        API_KEY = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
                         openai.api_key = API_KEY
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
@@ -422,7 +422,7 @@ class DataFile:
                     state = str(ws_uasys['Z' + str(cell.row)].value)
                     if institution_name != ws_uasys['U' + str(cell_prev)].value and ws_uasys[
                         'AG' + str(cell.row)].value is None:
-                        API_KEY = open(r"C:\Users\Wayne Cole\Downloads\Work Stuff\API Key.txt").read()
+                        API_KEY = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
                         openai.api_key = API_KEY
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
@@ -489,7 +489,8 @@ class DataFile:
                 location_name = str(grab.value)
                 if location_name.upper() == institute_name.upper():
                     parent_name = str(ws_data_grab['E' + str(grab.row)].value)
-                    if parent_name == "-" and ws_uasys['F' + str(cell.row)].value is not None:
+                    address_check = str(ws_uasys['F' + str(cell.row)].value)
+                    if parent_name == "-":
                         ws_uasys['E' + str(cell.row)].value = institute_name
                     else:
                         ws_uasys['E' + str(cell.row)].value = parent_name
@@ -504,8 +505,14 @@ class DataFile:
                 if location_name.upper() == institution_govern.upper():
                     GOV_DAPID = str(ws_data_grab['F' + str(grab.row)].value)
                     ws_uasys['B' + str(cell.row)].value = GOV_DAPID
-                    ws_uasys['C' + str(cell.row)].value = 'SEARCH'
-                    ws_uasys['D' + str(cell.row)].value = 'SEARCH'
+                    # Checking for the rest of the IDs in the accred database
+                    for match in ws_data_grab['A']:
+                        accred_dapid = str(match.value)
+                        if accred_dapid == GOV_DAPID:
+                            GOV_OPEID = str(ws_data_grab['B' + str(match.row)].value)
+                            GOV_IPEDID = str(ws_data_grab['C' + str(match.row)].value)
+                            ws_uasys['C' + str(cell.row)].value = GOV_OPEID
+                            ws_uasys['D' + str(cell.row)].value = GOV_IPEDID
             dapid_check = str(ws_uasys['B' + str(cell.row)].value)
             if dapid_check == '-':
                 govern_zipcode = str(ws_uasys['L' + str(cell.row)].value)
@@ -516,11 +523,11 @@ class DataFile:
                         found_zipcode = str(ws_nces_grab['A' + str(look.row)].value)
                         ws_uasys['B' + str(cell.row)].value = found_zipcode
         # Get GOV address line 1, GOV_MUNICIPALITY, GOV postal code
-        for cell in ws_uasys['E']:
+        for cell in ws_uasys['B']:
             institution_govern = str(cell.value)
-            for grab in ws_data_grab['D']:
+            for grab in ws_data_grab['A']:
                 location_name = str(grab.value)
-                if location_name.upper() == institution_govern.upper():
+                if location_name == institution_govern:
                     address_grab = str(ws_data_grab['H' + str(grab.row)].value)
                     address_grab.split(', ')
                     try:
@@ -751,7 +758,32 @@ class DataFile:
                 print('NoneType')
             except:
                 print('Unknown error')
-        print('Done!')
+        for cell in ws_uasys['F']:
+            if cell.row >= 3:
+                governing_address = str(cell.value)
+                if governing_address == 'None':
+                    one_dapip = str(ws_uasys['R' + str(cell.row)].value)
+                    two_oped = str(ws_uasys['S' + str(cell.row)].value)
+                    three_iped = str(ws_uasys['T' + str(cell.row)].value)
+                    address_one = str(ws_uasys['V' + str(cell.row)].value)
+                    address_two = str(ws_uasys['W' + str(cell.row)].value)
+                    pobox = str(ws_uasys['X' + str(cell.row)].value)
+                    city = str(ws_uasys['Y' + str(cell.row)].value)
+                    state = str(ws_uasys['Z' + str(cell.row)].value)
+                    zipcode = str(ws_uasys['AB' + str(cell.row)].value)
+                    phonenumber = str(ws_uasys['AC' + str(cell.row)].value)
+
+                    ws_uasys['B' + str(cell.row)].value = one_dapip
+                    ws_uasys['C' + str(cell.row)].value = two_oped
+                    ws_uasys['D' + str(cell.row)].value = three_iped
+                    ws_uasys['F' + str(cell.row)].value = address_one
+                    ws_uasys['G' + str(cell.row)].value = address_two
+                    ws_uasys['H' + str(cell.row)].value = pobox
+                    ws_uasys['I' + str(cell.row)].value = city
+                    ws_uasys['J' + str(cell.row)].value = state
+                    ws_uasys['L' + str(cell.row)].value = zipcode
+                    ws_uasys['M' + str(cell.row)].value = phonenumber
+        print('Done, with Reconciling Governing Institutions!')
         wb_uasys.save(raw_file)
 
     @classmethod
@@ -922,10 +954,12 @@ class DataFile:
                             address_additionalLocation = ws_data_grab['H' + str(grab.row)].value
                             cell_prev = int(cell.row) - 1
                             prev_additional_location = ws_uasys['AQ' + str(cell_prev)].value
-                            if additional_location.upper != prev_additional_location.upper:
+                            if additional_location.upper != prev_additional_location.upper and additional_location is not None:
                                 ws_uasys['AQ' + str(cell.row)].value = str(additional_location).upper
                                 ws_uasys['AS' + str(cell.row)].value = str(address_additionalLocation).upper
                                 wb_uasys.save(raw_file)
+                            else:
+                                ws_uasys['AQ' + str(cell.row)].value = str(lookup_institution).upper
                 except AttributeError:
                     print('Cell is read only!')
                 except TypeError:
@@ -952,7 +986,7 @@ class DataFile:
             COIN_dapid = ws_uasys['AL' + str(cell.row)].value
             COIN_opeid = ws_uasys['AM' + str(cell.row)].value
             COIN_ipedid = ws_uasys['AN' + str(cell.row)].value
-            if COIN_dapid is None and COIN_opeid is None and COIN_ipedid is None:
+            if COIN_dapid is None or COIN_opeid is None or COIN_ipedid is None:
                 institution_name = ws_uasys['U' + str(cell.row)].value
                 try:
                     if institution_name == CAMP_CAMPUS_NAME:
@@ -1008,7 +1042,7 @@ class DataFile:
                         if GOV_ADDRESS_LINE_1.startswith('P.O. Box'):
                             temp_PCODE = temp_POBOX
                             temp_POBOX = GOV_ADDRESS_LINE_1
-                            GOV_ADDRESS_LINE_1 = 'N/A'
+                            GOV_ADDRESS_LINE_1 = str('N/A')
 
                         if temp_POBOX.startswith('K'):
                             temp_POBOX = 'N/A'
@@ -1053,55 +1087,67 @@ class DataFile:
                     ws_uasys['AZ' + str(cell.row)].value = CAMP_PhoneNumberFull
         # Grabbing location data from Institution section to bring it to campus/location section for main campuses/one location
         for cell in ws_uasys['AQ']:
-            campus_institution = str(cell.value)
-            official_institution = ws_uasys['AP' + str(cell.row)].value
-            if campus_institution == official_institution and ws_uasys['AS' + str(cell.row)].value is None:
-                ADDRESS_LINE_1 = ws_uasys['V' + str(cell.row)].value
-                ADDRESS_LINE_2 = ws_uasys['W' + str(cell.row)].value
-                PO_BOX_LINE = ws_uasys['X' + str(cell.row)].value
-                MUNICIPALITY = ws_uasys['Y' + str(cell.row)].value
-                STATE_REGION_SHORT = ws_uasys['Z' + str(cell.row)].value
-                POSTAL_CODE = ws_uasys['AB' + str(cell.row)].value
-                PhoneNumberFull = ws_uasys['AC' + str(cell.row)].value
-                ws_uasys['AQ' + str(cell.row)].value = 'MAIN CAMPUS'
-                ws_uasys['AS' + str(cell.row)].value = ADDRESS_LINE_1
-                ws_uasys['AT' + str(cell.row)].value = ADDRESS_LINE_2
-                ws_uasys['AU' + str(cell.row)].value = PO_BOX_LINE
-                ws_uasys['AV' + str(cell.row)].value = MUNICIPALITY
-                ws_uasys['AW' + str(cell.row)].value = STATE_REGION_SHORT
-                ws_uasys['AX' + str(cell.row)].value = 'USA'
-                ws_uasys['AY' + str(cell.row)].value = POSTAL_CODE
-                ws_uasys['AZ' + str(cell.row)].value = PhoneNumberFull
+            if cell.row >= 3:
+                if ws_uasys['AS' + str(cell.row)].value is None:
+                    ADDRESS_LINE_1 = ws_uasys['V' + str(cell.row)].value
+                    ADDRESS_LINE_2 = ws_uasys['W' + str(cell.row)].value
+                    PO_BOX_LINE = ws_uasys['X' + str(cell.row)].value
+                    MUNICIPALITY = ws_uasys['Y' + str(cell.row)].value
+                    STATE_REGION_SHORT = ws_uasys['Z' + str(cell.row)].value
+                    POSTAL_CODE = ws_uasys['AB' + str(cell.row)].value
+                    PhoneNumberFull = ws_uasys['AC' + str(cell.row)].value
+                    ws_uasys['AQ' + str(cell.row)].value = 'MAIN CAMPUS'
+                    ws_uasys['AS' + str(cell.row)].value = ADDRESS_LINE_1
+                    ws_uasys['AT' + str(cell.row)].value = ADDRESS_LINE_2
+                    ws_uasys['AU' + str(cell.row)].value = PO_BOX_LINE
+                    ws_uasys['AV' + str(cell.row)].value = MUNICIPALITY
+                    ws_uasys['AW' + str(cell.row)].value = STATE_REGION_SHORT
+                    ws_uasys['AX' + str(cell.row)].value = 'USA'
+                    ws_uasys['AY' + str(cell.row)].value = POSTAL_CODE
+                    ws_uasys['AZ' + str(cell.row)].value = PhoneNumberFull
         # Move/delete substrings from CAMP_ADDRESS_LINE_1 and moving them into respective column row
         for cell in ws_uasys['AS']:
             governing_address = str(cell.value).split()
             for index in range(len(governing_address)):
                 word = governing_address[index]
-                if word == 'Ste' or word == 'Ste.' or word == 'STE' or word == 'STE.' or word == 'Unit' or word == 'PO' or word == 'Suite':
-                    GOV_ADDRESS_LINE_2 = str(' '.join(governing_address[index:len(governing_address)]))
-                    found_pobox = GOV_ADDRESS_LINE_2.find('PO Box')
-                    if found_pobox == -1:
-                        ws_uasys['AU' + str(cell.row)].value = GOV_ADDRESS_LINE_2.upper()
-                    else:
-                        ws_uasys['AT' + str(cell.row)].value = GOV_ADDRESS_LINE_2
-                        ws_uasys['AU' + str(cell.row)].value = 'N/A'
-                    ADDRESS_LINE_1 = str(cell.value)
-                    phrase_removal = ADDRESS_LINE_1.find(GOV_ADDRESS_LINE_2)
-                    if phrase_removal != -1:
-                        ws_uasys['AS' + str(cell.row)].value = ADDRESS_LINE_1.strip(GOV_ADDRESS_LINE_2)
-                elif word == 'Floor' or word == 'Fl':
-                    floor_num = index - 1
-                    GOV_ADDRESS_LINE_2 = str(' '.join(governing_address[floor_num:len(governing_address)]))
-                    ws_uasys['AT' + str(cell.row)].value = GOV_ADDRESS_LINE_2.upper()
-                    ADDRESS_LINE_1 = str(cell.value)
-                    phrase_removal = ADDRESS_LINE_1.find(GOV_ADDRESS_LINE_2)
-                    if phrase_removal != -1:
-                        ws_uasys['AS' + str(cell.row)].value = ADDRESS_LINE_1.strip(GOV_ADDRESS_LINE_2)
+                substrings = {
+                    'Ste',
+                    'Ste.',
+                    'STE',
+                    'STE.',
+                    'Unit',
+                    'PO',
+                    'Po',
+                    'Suite',
+                    'suite'
+                }
+                for look in substrings:
+                    if word == look:
+                        GOV_ADDRESS_LINE_2 = str(' '.join(governing_address[index:len(governing_address)]))
+                        found_pobox = GOV_ADDRESS_LINE_2.find('PO Box')
+                        if found_pobox == -1:
+                            ws_uasys['AU' + str(cell.row)].value = GOV_ADDRESS_LINE_2.upper()
+                        else:
+                            ws_uasys['AT' + str(cell.row)].value = GOV_ADDRESS_LINE_2
+                            ws_uasys['AU' + str(cell.row)].value = 'N/A'
+                        ADDRESS_LINE_1 = str(cell.value)
+                        phrase_removal = ADDRESS_LINE_1.find(GOV_ADDRESS_LINE_2)
+                        if phrase_removal != -1:
+                            ws_uasys['AS' + str(cell.row)].value = ADDRESS_LINE_1.strip(GOV_ADDRESS_LINE_2)
+                    elif word == 'Floor' or word == 'Fl':
+                        floor_num = index - 1
+                        GOV_ADDRESS_LINE_2 = str(' '.join(governing_address[floor_num:len(governing_address)]))
+                        ws_uasys['AT' + str(cell.row)].value = GOV_ADDRESS_LINE_2.upper()
+                        ADDRESS_LINE_1 = str(cell.value)
+                        phrase_removal = ADDRESS_LINE_1.find(GOV_ADDRESS_LINE_2)
+                        if phrase_removal != -1:
+                            ws_uasys['AS' + str(cell.row)].value = ADDRESS_LINE_1.strip(GOV_ADDRESS_LINE_2)
         # Move/delete substrings from CAMP_ADDRESS_LINE_2,
         for cell in ws_uasys['AU']:
             CAMP_PO_BOX_LINE = str(cell.value).split()
             word = CAMP_PO_BOX_LINE[0]
             if word != 'PO' or word != 'N/A':
+                word = word.upper()
                 if word.find('STE') == -1:
                     try:
                         ADDRESS_LINE_2 = ws_uasys['AT' + str(cell.row)].value
@@ -1119,24 +1165,24 @@ class DataFile:
         for cell in ws_uasys['AY']:
             POSTAL_CODE = str(cell.value)
             try:
-                if POSTAL_CODE.isalpha() and POSTAL_CODE != 'N/A':
+                if POSTAL_CODE.isalpha() and POSTAL_CODE.upper() != 'N/A':
                     CAMP_MUNICIPALITY = ws_uasys['AY' + str(cell.row)].value
                     CAMP_ADDRESS_LINE_2 = ws_uasys['AV' + str(cell.row)].value
                     ws_uasys['AT' + str(cell.row)].value = CAMP_ADDRESS_LINE_2
                     ws_uasys['AV' + str(cell.row)].value = CAMP_MUNICIPALITY
-                    ws_uasys['AY' + str(cell.row)].value = ''
-                if cell.value == 'N/A' or cell.value == 'N/':
+                    ws_uasys['AY' + str(cell.row)].value = ""
+                if POSTAL_CODE.upper() == 'N/A' or POSTAL_CODE.upper() == 'N/':
                     CAMP_POSTAL_CODE = ws_uasys['AV' + str(cell.row)].value
                     ADDRESS_LINE_2 = ws_uasys['AU' + str(cell.row)].value
                     ws_uasys['AY' + str(cell.row)].value = CAMP_POSTAL_CODE
                     ws_uasys['AT' + str(cell.row)].value = ADDRESS_LINE_2
                     ws_uasys['AU' + str(cell.row)].value = 'N/A'
                     ws_uasys['AU2'].value = 'CAMP_PO_BOX_LINE'
-                    ws_uasys['AV' + str(cell.row)].value = ''
-                postal_code_list = str(cell.value).split()
+                    ws_uasys['AV' + str(cell.row)].value = ""
+                postal_code_list = str(POSTAL_CODE).split()
                 word = postal_code_list[0]
                 if word.isalpha() and len(word) <= 2:
-                    STATE_REGION_SHORT = str(word).strip('[]')
+                    STATE_REGION_SHORT = ' '.join(word)
                     ws_uasys['AW' + str(cell.row)].value = STATE_REGION_SHORT
                     ws_uasys['AY' + str(cell.row)].value = str(cell.value).strip(STATE_REGION_SHORT)
             except IndexError:
@@ -1152,20 +1198,21 @@ class DataFile:
                     institution_closed = ws_nces_grab['W' + str(look.row)].value
                     found_two = str(institution_closed).find('-2')
                     if found_two < 0:
-                        ws_uasys['BD' + str(cell.row)].value = institution_closed
                         ws_uasys['BC' + str(cell.row)].value = 'Y'
+                        ws_uasys['BD' + str(cell.row)].value = institution_closed
         # If CAMPUS_RECORD_SOURCE is blank then assign the cell N/A
         for cell in ws_uasys['BE']:
-            try:
-                if cell.value is None:
-                    ws_uasys['BE' + str(cell.row)].value = "N/A"
-            except AttributeError:
-                print('Cell is read only!')
-            except TypeError:
-                print('Cell is read only!')
-            except:
-                print('Unknown error')
-        print('Done!')
+            if cell.row <= 3:
+                try:
+                    if cell.value is None:
+                        ws_uasys['BE' + str(cell.row)].value = "N/A"
+                except AttributeError:
+                    print('Cell is read only!')
+                except TypeError:
+                    print('Cell is read only!')
+                except:
+                    print('Unknown error')
+        print('Done, with Reconciling Campus Locations!')
         wb_uasys.save(raw_file)
 
     @classmethod
@@ -1427,7 +1474,7 @@ class DataFile:
                     state = str(ws_uasys['AW' + str(cell.row)].value)
                     if institution_name != ws_uasys['AP' + str(cell_prev)].value and ws_uasys[
                         'BA' + str(cell.row)].value is None:
-                        API_KEY = open(r"C:\Users\Wayne Cole\Downloads\Work Stuff\API Key.txt").read()
+                        API_KEY = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
                         openai.api_key = API_KEY
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
@@ -1479,7 +1526,7 @@ class DataFile:
                     state = str(ws_uasys['AW' + str(cell.row)].value)
                     if institution_name != ws_uasys['AP' + str(cell_prev)].value and ws_uasys[
                         'BB' + str(cell.row)].value is None:
-                        API_KEY = open(r"C:\Users\Wayne Cole\Downloads\Work Stuff\API Key.txt").read()
+                        API_KEY = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
                         openai.api_key = API_KEY
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
