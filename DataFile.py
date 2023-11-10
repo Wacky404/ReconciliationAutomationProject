@@ -1,5 +1,6 @@
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
+from difflib import SequenceMatcher
 import re
 import time
 import sys
@@ -55,6 +56,26 @@ class DataFile:
         'u.s.': 'united states',
         'u.s': 'united states'
     }
+    field_names = {'F': 'gov_address_line_1',
+                   'G': 'gov_address_line_2',
+                   'I': 'gov_municipality',
+                   'L': 'gov_postal_code',
+                   'M': 'gov_PhoneNumberFull',
+                   'U': 'primary_institution_name',
+                   'V': 'inst_address_line_1',
+                   'Y': 'inst_municipality',
+                   'AB': 'inst_postal_code',
+                   'AC': 'inst_PhoneNumberFull',
+                   'AP': 'camp_official_institution_name',
+                   'AQ': 'camp_campus_name',
+                   'AR': 'camp_location_site',
+                   'AS': 'camp_address_line_1',
+                   'AT': 'camp_address_line_2',
+                   'AV': 'camp_municipality',
+                   'AY': 'camp_postal_code',
+                   'AZ': 'camp_PhoneNumberFull'
+                   }
+    null_values = ('None', 'Null', '')
 
     def __init__(self, raw_file, sheet_name, abbrev):
         self.raw_file = raw_file
@@ -933,8 +954,8 @@ class DataFile:
                 print('Cell is read only!')
             except TypeError:
                 print('Cell is read only!')
-            except:
-                print('Unknown error')
+            except Exception as e:
+                print(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Grabbing the missing cells in CAMP_OFFICIAL_INSTITUTION_NAME from PRIMARY_INSTITUTION_NAME
         for cell in ws_uasys['AP']:
             if cell.value is None:
@@ -964,16 +985,19 @@ class DataFile:
                     print('Cell is read only!')
                 except TypeError:
                     print('Cell is read only!')
-                except:
-                    print('Unknown error')
+                except Exception as e:
+                    print(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Get CAMP_CAMPUS_NAME CAMP_OPED_ID and CAMP_IPED_ID from LocationName OpeId and IpedsUnitIds
         for cell in ws_uasys['AQ']:
             organization_name = str(cell.value)
+            organization_address = str(ws_uasys['AS' + str(cell.row)].value)
             print("----------------------------------")
-            print('Populating ' + organization_name + ' fields.....')
+            print(f"Populating {organization_name} fields.....")
             for grab in ws_data_grab['D']:
                 location_name = str(grab.value)
-                if location_name.upper() == organization_name.upper():
+                location_address = str(ws_data_grab['H' + grab.row].value)
+                string_match = SequenceMatcher(lambda x: x in " \t", organization_address, location_address).ratio()
+                if location_name.upper() == organization_name.upper() and string_match >= 0.6:
                     CAMP_DAPID = str(ws_data_grab['A' + str(grab.row)].value)
                     CAMP_OPED_ID = str(ws_data_grab['B' + str(grab.row)].value)
                     CAMP_IPED_ID = str(ws_data_grab['C' + str(grab.row)].value)
@@ -1568,3 +1592,25 @@ class DataFile:
             except:
                 print('Server Overload')
             sys.stdout.flush()
+
+    @classmethod
+    def reconcile_google(cls, wb_uasys, ws_uasys, null_values):
+        for row in ws_uasys.iter_rows(min_row=3, min_col=5, values_only=False):
+            cache = []
+            temp = []
+            # Creating cache of sub lists that will store column letter and n integer
+            for cell in row:
+                cell_content = str(cell.value)
+                for value in null_values:
+                    if cell_content.lower() == value.lower():
+                        for char in str(cell.coordinate):
+                            temp.append(char)
+                            # Checking for multiple letter column coordinates; ex: 'AB1'
+                            for index, alpha in enumerate(temp):
+                                next_index = int(index + 1)
+                                if alpha.isalpha() and alpha[next_index].isalpha:
+                                    merge_one = str(temp[index])
+                                    merge_two = str(temp[next_index])
+                                    temp[0] = str(merge_one + merge_two)
+                        cache.append(temp)
+            # Here is where I will grab will do API requests based on fields that are null_values
