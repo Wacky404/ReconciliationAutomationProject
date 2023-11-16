@@ -1,5 +1,10 @@
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
+<<<<<<< Updated upstream:reconcile.py
+=======
+from difflib import SequenceMatcher
+from googleintegration import GoogleIntegration
+>>>>>>> Stashed changes:DataFile.py
 import re
 import time
 import openai
@@ -865,8 +870,6 @@ class DataFile:
                             address_grab = address_grab + ", N/A, N/A, N/A, N/A, N/A, N/A"
                         if len(address_grab.split(', ')) == 2:
                             address_grab = address_grab + ", N/A, N/A, N/A, N/A, N/A"
-                        if len(address_grab.split(', ')) == 2:
-                            address_grab = address_grab + ", N/A, N/A, N/A, N/A, N/A"
                         if len(address_grab.split(', ')) == 3:
                             address_grab = address_grab + ", N/A, N/A, N/A, N/A"
                         if len(address_grab.split(', ')) == 4:
@@ -1190,6 +1193,7 @@ class DataFile:
         print('Done!')
 
     @classmethod
+<<<<<<< Updated upstream:reconcile.py
     def ai_campuslocation(cls, wb_uasys, ws_uasys, raw_file):
         for cell in ws_uasys['AP']:
             try:
@@ -1275,3 +1279,30 @@ class DataFile:
                 print('Bad Gateway')
             except openai.error.ServiceUnavailableError:
                 print('Server overload')
+=======
+    def reconcile_google(cls, ws_uasys, null_values):
+        # Not moving this function into separate file, however the API reqs will be separate
+        count = int(0)
+        for row in ws_uasys.iter_rows(min_row=3, min_col=5, values_only=False):
+            count += 1
+            cache = []
+            # Creating cache of sub lists that will store column letter and n integer
+            for cell in row:
+                temp = []
+                cell_content = str(cell.value)
+                for value in null_values:
+                    if cell_content.lower() == value.lower():
+                        print("This is the cell coordinate: " + str(cell.coordinate))
+                        column = str()
+                        numbers = str()
+                        for char in str(cell.coordinate):
+                            if char.isalpha():
+                                column += char
+                            else:
+                                numbers += char
+                        temp.append(column), temp.append(numbers)
+                        cache.append(temp)
+                        print("This is the final temp: " + str(temp))
+            print(f"This is row {count} cache: " + str(cache))
+            # Here is where I will grab will do API requests based on fields that are null_values
+>>>>>>> Stashed changes:DataFile.py
