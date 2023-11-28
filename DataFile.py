@@ -1,6 +1,9 @@
+# Almost done just need to code for separation of University names
+# and address_twos'
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from difflib import SequenceMatcher
+from GoogleIntegration import GoogleIntegration
 import re
 
 
@@ -53,25 +56,28 @@ class DataFile:
         'u.s.': 'united states',
         'u.s': 'united states'
     }
-    field_names = {'F': 'gov_address_line_1',
-                   'G': 'gov_address_line_2',
-                   'I': 'gov_municipality',
-                   'L': 'gov_postal_code',
-                   'M': 'gov_PhoneNumberFull',
-                   'U': 'primary_institution_name',
-                   'V': 'inst_address_line_1',
-                   'Y': 'inst_municipality',
-                   'AB': 'inst_postal_code',
-                   'AC': 'inst_PhoneNumberFull',
-                   'AP': 'camp_official_institution_name',
-                   'AQ': 'camp_campus_name',
-                   'AR': 'camp_location_site',
-                   'AS': 'camp_address_line_1',
-                   'AT': 'camp_address_line_2',
-                   'AV': 'camp_municipality',
-                   'AY': 'camp_postal_code',
-                   'AZ': 'camp_PhoneNumberFull'
-                   }
+    gov_field_names = {
+        'F': 'gov_address_line_1',
+        'I': 'gov_municipality',
+        'L': 'gov_postal_code',
+        'M': 'gov_PhoneNumberFull',
+    }
+    insti_field_names = {
+        'U': 'primary_institution_name',
+        'V': 'inst_address_line_1',
+        'Y': 'inst_municipality',
+        'AB': 'inst_postal_code',
+        'AC': 'inst_PhoneNumberFull',
+    }
+    camp_field_names = {
+        'AP': 'camp_official_institution_name',
+        'AQ': 'camp_campus_name',
+        'AR': 'camp_location_site',
+        'AS': 'camp_address_line_1',
+        'AV': 'camp_municipality',
+        'AY': 'camp_postal_code',
+        'AZ': 'camp_PhoneNumberFull',
+    }
     null_values = ('None', 'Null', '')
 
     def __init__(self, raw_file, sheet_name, abbrev):
@@ -1369,24 +1375,164 @@ class DataFile:
         print('Done!')
 
     @classmethod
-    def reconcile_google(cls, wb_uasys, ws_uasys, null_values):
+    def reconcile_google(cls, wb_uasys, ws_uasys, null_values, gov_field_names, insti_field_names, camp_field_names):
         # Not moving this function into separate file, however the API reqs will be separate
+        count = int(0)
         for row in ws_uasys.iter_rows(min_row=3, min_col=5, values_only=False):
+            count += 1
             cache = []
-            temp = []
-            # Creating cache of sub lists that will store column letter and n integer
+            # Creating cache of nested lists that will store column letter and n integer
             for cell in row:
+                temp = []
                 cell_content = str(cell.value)
                 for value in null_values:
                     if cell_content.lower() == value.lower():
+                        print("This is the cell coordinate: " + str(cell.coordinate))
+                        column = str()
+                        numbers = str()
                         for char in str(cell.coordinate):
-                            temp.append(char)
-                            # Checking for multiple letter column coordinates; ex: 'AB1'
-                            for index, alpha in enumerate(temp):
-                                next_index = int(index + 1)
-                                if alpha.isalpha() and alpha[next_index].isalpha:
-                                    merge_one = str(temp[index])
-                                    merge_two = str(temp[next_index])
-                                    temp[0] = str(merge_one + merge_two)
+                            if char.isalpha():
+                                column += char
+                            else:
+                                numbers += char
+                        temp.append(column), temp.append(numbers)
                         cache.append(temp)
-            # Here is where I will grab will do API requests based on fields that are null_values
+                        print("This is the final temp: " + str(temp))
+            print(f"This is row {count} cache: " + str(cache))
+            # Here is where I will do API requests based on fields that are null_values
+            run = int(0)
+            # Skips are what keep track of API call per row for each section of data: reset to false each iteration
+            skip_gov = bool(False)
+            skip_insti = bool(False)
+            skip_camp = bool(False)
+            while run <= len(cache):
+                cache_column = cache[run][0]
+                cache_row = cache[run][1]
+                if not skip_gov:
+                    for key in gov_field_names:
+                        if cache_column == key:
+                            # Assigning variable to call query:
+                            place_name = str(ws_uasys['E' + str(cache_row)].value)
+                            for value in null_values:
+                                if place_name == value:
+                                    place_name = str(ws_uasys['L' + str(cache_row)].value)
+                                    for null in null_values:
+                                        if place_name == null:
+                                            place_name = str(ws_uasys['I' + str(cache_row)].value)
+
+                            db_location = str(ws_uasys['F' + str(cache_row)].value)
+                            for value in null_values:
+                                if db_location == value:
+                                    db_location = str(ws_uasys['I' + str(cache_row)].value)
+                                    for null in null_values:
+                                        if db_location == null:
+                                            db_location = str(ws_uasys['L' + str(cache_row)].value)
+
+                            second_location = str(ws_uasys['G' + str(cache_row)].value)
+                            if second_location != "N/A":
+                                db_location = str(db_location + ' ' + second_location)
+
+                            missing_data = GoogleIntegration.get_details(query=place_name, location=db_location)
+
+                            address_one, municipality, s_abbr = missing_data['Address'].split(", ")
+                            # Handling the case when ", NY 22103":
+                            if not s_abbr.isalpha():
+                                zipcode = str()
+                                for char in s_abbr:
+                                    if char.isdigit:
+                                        zipcode += char
+                                s_abbr.strip(zipcode)
+                                ws_uasys['L' + str(cache_column)].value = zipcode
+
+                            # Didn't do address_two; seperation function
+                            ws_uasys['E' + str(cache_column)].value = missing_data['Name']
+                            ws_uasys['F' + str(cache_column)].value = address_one
+                            ws_uasys['I' + str(cache_column)].value = municipality
+                            ws_uasys['J' + str(cache_column)].value = s_abbr
+                            ws_uasys['M' + str(cache_column)].value = missing_data['Phone Number']
+                            skip_gov = True
+                            break
+                elif not skip_insti:
+                    for key in insti_field_names:
+                        if cache_column == key:
+                            # Assigning variable to call query:
+                            place_name = str(ws_uasys['U' + str(cache_row)].value)
+                            for value in null_values:
+                                if place_name == value:
+                                    place_name = str(ws_uasys['AB' + str(cache_row)].value)
+                                    for null in null_values:
+                                        if place_name == null:
+                                            place_name = str(ws_uasys['Y' + str(cache_row)].value)
+
+                            db_location = str(ws_uasys['V' + str(cache_row)].value)
+                            for value in null_values:
+                                if db_location == value:
+                                    db_location = str(ws_uasys['Y' + str(cache_row)].value)
+                                    for null in null_values:
+                                        if db_location == null:
+                                            db_location = str(ws_uasys['AB' + str(cache_row)].value)
+
+                            second_location = str(ws_uasys['W' + str(cache_row)].value)
+                            if second_location != "N/A":
+                                db_location = str(db_location + ' ' + second_location)
+
+                            missing_data = GoogleIntegration.get_details(query=place_name, location=db_location)
+                            address_one, municipality, s_abbr = missing_data['Address'].split(", ")
+                            # Handling the case when ", NY 22103":
+                            if not s_abbr.isalpha():
+                                zipcode = str()
+                                for char in s_abbr:
+                                    if char.isdigit:
+                                        zipcode += char
+                                s_abbr.strip(zipcode)
+                                ws_uasys['AB' + str(cache_column)].value = zipcode
+
+                            ws_uasys['U' + str(cache_column)].value = missing_data['Name']
+                            ws_uasys['V' + str(cache_column)].value = address_one
+                            ws_uasys['Y' + str(cache_column)].value = municipality
+                            ws_uasys['AA' + str(cache_column)].value = s_abbr
+                            ws_uasys['AC' + str(cache_column)].value = missing_data['Phone Number']
+                            skip_insti = True
+                            break
+                elif not skip_camp:
+                    for key in camp_field_names:
+                        if cache_column == key:
+                            # Assigning variable to call query:
+                            first_name = str(ws_uasys['AP' + str(cache_row)].value)
+                            second_name = str(ws_uasys['AQ' + str(cache_row)].value)
+                            place_name = str(first_name + ' ' + second_name)
+                            for value in null_values:
+                                if place_name == value:
+                                    place_name = str(ws_uasys['AY' + str(cache_row)].value)
+
+                            db_location = str(ws_uasys['AS' + str(cache_row)].value)
+                            for value in null_values:
+                                if db_location == value:
+                                    db_location = str(ws_uasys['AV' + str(cache_row)].value)
+                                    for null in null_values:
+                                        if db_location == null:
+                                            db_location = str(ws_uasys['AY' + str(cache_row)].value)
+
+                            second_location = str(ws_uasys['AT' + str(cache_row)].value)
+                            if second_location != "N/A":
+                                db_location = str(db_location + ' ' + second_location)
+
+                            missing_data = GoogleIntegration.get_details(query=place_name, location=db_location)
+                            address_one, municipality, s_abbr = missing_data['Address'].split(", ")
+                            # Handling the case when ", NY 22103":
+                            if not s_abbr.isalpha():
+                                zipcode = str()
+                                for char in s_abbr:
+                                    if char.isdigit:
+                                        zipcode += char
+                                s_abbr.strip(zipcode)
+                                ws_uasys['AY' + str(cache_column)].value = zipcode
+                            # Going to have to separate name and address_two for this one
+                            ws_uasys['AQ' + str(cache_column)].value = missing_data['Name']
+                            ws_uasys['AS' + str(cache_column)].value = address_one
+                            ws_uasys['AV' + str(cache_column)].value = municipality
+                            ws_uasys['AW' + str(cache_column)].value = s_abbr
+                            ws_uasys['AZ' + str(cache_column)].value = missing_data['Phone Number']
+                            skip_camp = True
+                            break
+                run += 1

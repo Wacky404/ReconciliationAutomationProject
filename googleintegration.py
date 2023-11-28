@@ -1,31 +1,26 @@
-# Might just be one function, going to placeholder it with a template for now.
-import requests
-import time
+from googleplaces import GooglePlaces, types
 
 
 class GoogleIntegration:
-    api_key = open(r"placeholder").read()
-    url = str("https://places.googlemaps.com/v1/places:search_request")
+    api_key = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\google.txt").read()
+    google_places = GooglePlaces(api_key)
 
-    def __init__(self, query, result):
-        self.query = query
-        self.result = result
+    @staticmethod
+    def get_details(google_places=google_places, query=None, kind_of=types.TYPE_UNIVERSITY, location=None):
+        # 10 QPS as of 11/15
+        query_result = google_places.text_search(query=query, type=kind_of, location=location)
+        for place in query_result.places:
+            # Returned places from a query are place summaries
+            query_place_id = place.place_id
+            # Must be called
+            place.get_details()
+            place_name = place.name
+            formatted_address = place.formatted_address
+            phone_number_full = place.international_phone_number if place.international_phone_number else place.local_phone_number
 
-    @classmethod
-    def placeholder(cls, url, query, api_key):
-        # Template request to get place_id for location search. Subject to change.
-        r = requests.get(url + 'query=' + query + '&key' + api_key )
-        result = r.json()
-        remove_id = result['results']
-
-        place_id = []
-        for i in range(len(remove_id)):
-            print(remove_id[i]['names'])
-            place_id.append(remove_id)
-        return place_id
-
-    @classmethod
-    def placeholder_1(cls):
-
-    @classmethod
-    def placeholder_2(cls):
+            return {
+                'ID': query_place_id,
+                'Name': place_name,
+                'Address': formatted_address,
+                'Phone Number': phone_number_full
+            }
