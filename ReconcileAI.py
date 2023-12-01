@@ -16,11 +16,7 @@ class ReconcileAI:
 
     @classmethod
     def ai_institution(cls, wb_uasys, ws_uasys, raw_file):
-        max_row = ws_uasys.max_row
         for cell in ws_uasys['U']:
-            progress = cell.row / max_row
-            sys.stdout.write('\r')
-            sys.stdout.write("[%-20s] %d%%" % ('=' * int(max_row * progress), float(cell.row / max_row) * 100))
             try:
                 if cell.row >= 3:
                     cell_prev = int(cell.row) - 1
@@ -61,20 +57,10 @@ class ReconcileAI:
                         last_entry = str(ws_uasys['AF' + str(cell_prev)].value)
                         ws_uasys['AF' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
-            except openai.error.APIError:
-                print('Bad Gateway')
-            except openai.error.ServiceUnavailableError:
-                print('Server Overload')
-            except TimeoutError:
-                print('Read Operation Timeout')
-            except:
-                print('Server overload')
-            sys.stdout.flush()
+            except Exception as e:
+                print(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
 
         for cell in ws_uasys['U']:
-            progress = cell.row / max_row
-            sys.stdout.write('\r')
-            sys.stdout.write("[%-20s] %d%%" % ('=' * int(max_row * progress), float(cell.row / max_row) * 100))
             try:
                 if cell.row >= 3:
                     cell_prev = int(cell.row) - 1
@@ -116,23 +102,12 @@ class ReconcileAI:
                         last_entry = str(ws_uasys['AG' + str(cell_prev)].value)
                         ws_uasys['AG' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
-            except openai.error.APIError:
-                print('Bad Gateway')
-            except openai.error.ServiceUnavailableError:
-                print('Server Overload')
-            except TimeoutError:
-                print('Read Operation Timeout')
-            except:
-                print('Server Overload')
-            sys.stdout.flush()
+            except Exception as e:
+                print(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
 
     @classmethod
     def ai_campuslocation(cls, wb_uasys, ws_uasys, raw_file):
-        max_row = ws_uasys.max_row
         for cell in ws_uasys['AP']:
-            progress = cell.row / max_row
-            sys.stdout.write('\r')
-            sys.stdout.write("[%-20s] %d%%" % ('=' * int(max_row * progress), float(cell.row / max_row) * 100))
             try:
                 if cell.row >= 3:
                     cell_prev = int(cell.row) - 1
@@ -171,20 +146,10 @@ class ReconcileAI:
                         last_entry = str(ws_uasys['BA' + str(cell_prev)].value)
                         ws_uasys['BA' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
-            except openai.error.APIError:
-                print('Bad Gateway')
-            except openai.error.ServiceUnavailableError:
-                print('Server overload')
-            except TimeoutError:
-                print('Read Operation Timeout')
-            except:
-                print('Server Overload')
-            sys.stdout.flush()
+            except Exception as e:
+                print(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
 
         for cell in ws_uasys['AP']:
-            progress = cell.row / max_row
-            sys.stdout.write('\r')
-            sys.stdout.write("[%-20s] %d%%" % ('=' * int(max_row * progress), float(cell.row / max_row) * 100))
             try:
                 if cell.row >= 3:
                     cell_prev = int(cell.row) - 1
@@ -226,12 +191,5 @@ class ReconcileAI:
                         last_entry = str(ws_uasys['BB' + str(cell_prev)].value)
                         ws_uasys['BB' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
-            except openai.error.APIError:
-                print('Bad Gateway')
-            except openai.error.ServiceUnavailableError:
-                print('Server overload')
-            except TimeoutError:
-                print('Read Operation Timeout')
-            except:
-                print('Server Overload')
-            sys.stdout.flush()
+            except Exception as e:
+                print(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
