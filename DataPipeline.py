@@ -46,8 +46,8 @@ while go:
                                          df.ws_data_grab, df.ws_nces_grab)
             state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
                                               df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_google(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
-                                      df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
+            # state[i].reconcile_google(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
+            # df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
             print('Reconcile is done for ' + str(state[i]) + '\n')
     elif user_choice == 2:
@@ -60,8 +60,8 @@ while go:
                                          df.ws_data_grab, df.ws_nces_grab)
             state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
                                               df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_google(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
-                                      df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
+            # state[i].reconcile_google(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
+            # df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
             print('Reconcile is done for ' + str(state[i]) + ' moving on to cleaning....\n')
 
@@ -91,8 +91,8 @@ while go:
                                          df.ws_data_grab, df.ws_nces_grab)
             state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
                                               df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_google(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
-                                      df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
+            # state[i].reconcile_google(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
+            # df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
             print('Reconcile is done for ' + str(state[i]) + ' moving on to AI....\n')
 
@@ -110,6 +110,8 @@ while go:
     elif user_choice == 5:
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
+
+            print('AI is starting for ' + str(state[i]))
 
             state_ai = ai(file_location[i], worksheet[i], abrev_state[i])
             state_ai.ai_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)

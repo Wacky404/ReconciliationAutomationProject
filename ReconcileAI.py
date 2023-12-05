@@ -2,7 +2,6 @@ from openpyxl import load_workbook
 from DataFile import DataFile
 import openai
 import time
-import sys
 
 
 class ReconcileAI:
@@ -58,7 +57,8 @@ class ReconcileAI:
                         ws_uasys['AF' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
             except Exception as e:
-                print(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
+                print(f"An exception of type {type(e).__name__} occurred in Insti. Details: {str(e)}")
+                print('Moving on to the next location')
 
         for cell in ws_uasys['U']:
             try:
@@ -103,7 +103,8 @@ class ReconcileAI:
                         ws_uasys['AG' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
             except Exception as e:
-                print(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
+                print(f"An exception of type {type(e).__name__} occurred in Insti. Details: {str(e)}")
+                print('Moving on to the next location')
 
     @classmethod
     def ai_campuslocation(cls, wb_uasys, ws_uasys, raw_file):
@@ -147,7 +148,8 @@ class ReconcileAI:
                         ws_uasys['BA' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
             except Exception as e:
-                print(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
+                print(f"An exception of type {type(e).__name__} occurred in Camp. Details: {str(e)}")
+                print('Moving on to the next location')
 
         for cell in ws_uasys['AP']:
             try:
@@ -192,4 +194,5 @@ class ReconcileAI:
                         ws_uasys['BB' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
             except Exception as e:
-                print(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
+                print(f"An exception of type {type(e).__name__} occurred in Camp. Details: {str(e)}")
+                print('Moving on to the next location')

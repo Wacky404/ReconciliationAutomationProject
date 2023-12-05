@@ -1,4 +1,6 @@
+# Going to be using an opensource map, structure should stay the same
 from googleplaces import GooglePlaces, types
+import requests
 import time
 
 
