@@ -1,5 +1,5 @@
 # Going to be using an opensource map, structure should stay the same
-from googleplaces import GooglePlaces, types
+from googleplaces import GooglePlaces
 import requests
 import time
 
