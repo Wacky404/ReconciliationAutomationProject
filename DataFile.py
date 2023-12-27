@@ -1,3 +1,4 @@
+
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from difflib import SequenceMatcher
@@ -61,14 +62,12 @@ class DataFile:
         'F': 'gov_address_line_1',
         'I': 'gov_municipality',
         'L': 'gov_postal_code',
-        'M': 'gov_PhoneNumberFull',
     }
     insti_field_names = {
         'U': 'primary_institution_name',
         'V': 'inst_address_line_1',
         'Y': 'inst_municipality',
         'AB': 'inst_postal_code',
-        'AC': 'inst_PhoneNumberFull',
     }
     camp_field_names = {
         'AP': 'camp_official_institution_name',
@@ -77,7 +76,6 @@ class DataFile:
         'AS': 'camp_address_line_1',
         'AV': 'camp_municipality',
         'AY': 'camp_postal_code',
-        'AZ': 'camp_PhoneNumberFull',
     }
     null_values = ('None', 'Null', '')
 
@@ -1428,6 +1426,7 @@ class DataFile:
     @classmethod
     def reconcile_google(cls, wb_uasys, ws_uasys, raw_file, null_values, gov_field_names, insti_field_names,
                          camp_field_names):
+        # TODO: Getting exception of type IndexError, details: list index out of range
         # Not moving this function into separate file, however the API reqs will be separate
         count = int(0)
         for row in ws_uasys.iter_rows(min_row=3, min_col=5, values_only=False):
@@ -1466,58 +1465,28 @@ class DataFile:
                             if cache_column == key:
                                 # Assigning variable to call query:
                                 place_name = str(ws_uasys['E' + str(cache_row)].value)
-                                for value in null_values:
-                                    if place_name == value:
-                                        place_name = str(ws_uasys['L' + str(cache_row)].value)
-                                        for null in null_values:
-                                            if place_name == null:
-                                                place_name = str(ws_uasys['I' + str(cache_row)].value)
-
+                                place_zipcode = str(ws_uasys['L' + str(cache_row)].value)
+                                place_city = str(ws_uasys['I' + str(cache_row)].value)
                                 db_location = str(ws_uasys['F' + str(cache_row)].value)
-                                for value in null_values:
-                                    if db_location == value:
-                                        db_location = str(ws_uasys['I' + str(cache_row)].value)
-                                        for null in null_values:
-                                            if db_location == null:
-                                                db_location = str(ws_uasys['L' + str(cache_row)].value)
-
                                 second_location = str(ws_uasys['G' + str(cache_row)].value)
                                 if second_location != "N/A":
                                     db_location = str(db_location + ' ' + second_location)
+                                place_state = str(ws_uasys['J' + str(cache_row)].value)
 
                                 try:
-                                    missing_data = GoogleIntegration.get_details(query=place_name, location=db_location)
-                                    address_one, municipality, s_abbr, country = missing_data['Address'].split(", ")
+                                    missing_data = NominatimIntegration.query_structured(amenity=place_name,
+                                                                                         street=db_location,
+                                                                                         city=place_city,
+                                                                                         state=place_state,
+                                                                                         postalcode=place_zipcode)
+                                    ws_uasys['L' + str(cache_row)].value = str(missing_data['ZipCode'])
+                                    ws_uasys['E' + str(cache_row)].value = str(missing_data['Name'])
+                                    ws_uasys['I' + str(cache_row)].value = str(missing_data['Municipality'])
+                                    ws_uasys['J' + str(cache_row)].value = str(missing_data['State'])
+                                    id_lst.append([missing_data['ID'], missing_data['Name']])
                                 except Exception as e:
                                     print(f"An exception of type {type(e).__name__} occurred in Gov. Details: {str(e)}")
                                     time.sleep(.5)
-                                    skip_gov = True
-                                    break
-                                # Handling the case when ", NY 22103":
-                                if not s_abbr.isalpha():
-                                    zipcode = str()
-                                    for char in s_abbr:
-                                        if char.isdigit():
-                                            zipcode += char
-                                    sep_abbr = s_abbr.split()
-                                    for index in range(len(sep_abbr)):
-                                        word = sep_abbr[index]
-                                        if word == zipcode:
-                                            sep_abbr.pop(index)
-                                            s_abbr = ''.join(sep_abbr)
-                                    ws_uasys['L' + str(cache_row)].value = zipcode
-
-                                # Address separation function
-                                DataFile._split_address(ws_uasys, address_original=address_one, cache_row=cache_row,
-                                                        addr_line1_col='F', addr_line2_col='G')
-                                ws_uasys['E' + str(cache_row)].value = missing_data['Name']
-                                ws_uasys['I' + str(cache_row)].value = municipality
-                                ws_uasys['J' + str(cache_row)].value = s_abbr
-                                # Google returns +, - in phone value
-                                temp_phone = missing_data['Phone Number'].replace('+', '')
-                                temp_phone = temp_phone.replace('-', '')
-                                ws_uasys['M' + str(cache_row)].value = temp_phone
-                                id_lst.append([missing_data['ID'], missing_data['Name']])
                                 skip_gov = True
                                 break
                     if not skip_insti:
@@ -1525,56 +1494,28 @@ class DataFile:
                             if cache_column == key:
                                 # Assigning variable to call query:
                                 place_name = str(ws_uasys['U' + str(cache_row)].value)
-                                for value in null_values:
-                                    if place_name == value:
-                                        place_name = str(ws_uasys['AB' + str(cache_row)].value)
-                                        for null in null_values:
-                                            if place_name == null:
-                                                place_name = str(ws_uasys['Y' + str(cache_row)].value)
-
+                                place_zipcode = str(ws_uasys['AB' + str(cache_row)].value)
+                                place_city = str(ws_uasys['Y' + str(cache_row)].value)
                                 db_location = str(ws_uasys['V' + str(cache_row)].value)
-                                for value in null_values:
-                                    if db_location == value:
-                                        db_location = str(ws_uasys['Y' + str(cache_row)].value)
-                                        for null in null_values:
-                                            if db_location == null:
-                                                db_location = str(ws_uasys['AB' + str(cache_row)].value)
-
                                 second_location = str(ws_uasys['W' + str(cache_row)].value)
                                 if second_location != "N/A":
                                     db_location = str(db_location + ' ' + second_location)
+                                place_state = str(ws_uasys['Z' + str(cache_row)].value)
 
                                 try:
-                                    missing_data = GoogleIntegration.get_details(query=place_name, location=db_location)
-                                    address_one, municipality, s_abbr, country = missing_data['Address'].split(", ")
+                                    missing_data = NominatimIntegration.query_structured(amenity=place_name,
+                                                                                         street=db_location,
+                                                                                         city=place_city,
+                                                                                         state=place_state,
+                                                                                         postalcode=place_zipcode)
+                                    ws_uasys['AB' + str(cache_row)].value = str(missing_data['ZipCode'])
+                                    ws_uasys['U' + str(cache_row)].value = str(missing_data['Name'])
+                                    ws_uasys['Y' + str(cache_row)].value = str(missing_data['Municipality'])
+                                    ws_uasys['Z' + str(cache_row)].value = str(missing_data['State'])
+                                    id_lst.append([missing_data['ID'], missing_data['Name']])
                                 except Exception as e:
                                     print(f"An exception of type {type(e).__name__} occurred in Insti. Details: {str(e)}")
                                     time.sleep(.5)
-                                    skip_insti = True
-                                    break
-                                # Handling the case when ", NY 22103":
-                                if not s_abbr.isalpha():
-                                    zipcode = str()
-                                    for char in s_abbr:
-                                        if char.isdigit():
-                                            zipcode += char
-                                    sep_abbr = s_abbr.split()
-                                    for index in range(len(sep_abbr)):
-                                        word = sep_abbr[index]
-                                        if word == zipcode:
-                                            sep_abbr.pop(index)
-                                            s_abbr = ''.join(sep_abbr)
-                                    ws_uasys['AB' + str(cache_row)].value = zipcode
-
-                                DataFile._split_address(ws_uasys, address_original=address_one, cache_row=cache_row,
-                                                        addr_line1_col='V', addr_line2_col='W')
-                                ws_uasys['U' + str(cache_row)].value = missing_data['Name']
-                                ws_uasys['Y' + str(cache_row)].value = municipality
-                                ws_uasys['AA' + str(cache_row)].value = s_abbr
-                                temp_phone = missing_data['Phone Number'].replace('+', '')
-                                temp_phone = temp_phone.replace('-', '')
-                                ws_uasys['AC' + str(cache_row)].value = temp_phone
-                                id_lst.append([missing_data['ID'], missing_data['Name']])
                                 skip_insti = True
                                 break
                     if not skip_camp:
@@ -1586,69 +1527,29 @@ class DataFile:
                                 if second_name == 'N/A' or second_name in null_values:
                                     second_name = str(ws_uasys['AR' + str(cache_row)].value)
                                 place_name = str(first_name + ' ' + second_name)
-                                for value in null_values:
-                                    if place_name == value:
-                                        place_name = str(ws_uasys['AY' + str(cache_row)].value)
 
+                                place_zipcode = str(ws_uasys['AY' + str(cache_row)].value)
+                                place_city = str(ws_uasys['AV' + str(cache_row)].value)
                                 db_location = str(ws_uasys['AS' + str(cache_row)].value)
-                                state_region = str(ws_uasys['AW' + str(cache_row)].value)
-                                camp_city = str(ws_uasys['AV' + str(cache_row)].value)
-                                region_usable = True
-                                city_usable = True
-                                for match in null_values:
-                                    if state_region == match:
-                                        region_usable = False
-                                    if camp_city == match:
-                                        city_usable = False
-                                if region_usable and city_usable:
-                                    db_location = db_location + ', ' + camp_city + ' ' + state_region
-                                for value in null_values:
-                                    if db_location == value:
-                                        db_location = str(ws_uasys['AV' + str(cache_row)].value)
-                                        state_region = str(ws_uasys['AW' + str(cache_row)].value)
-                                        db_location = db_location + ' ' + state_region
-                                        for null in null_values:
-                                            if db_location == null:
-                                                state_region = str(ws_uasys['AW' + str(cache_row)].value)
-                                                db_location = str(ws_uasys['AY' + str(cache_row)].value)
-                                                db_location = state_region + ' ' + db_location
-
                                 second_location = str(ws_uasys['AT' + str(cache_row)].value)
                                 if second_location != "N/A":
                                     db_location = str(db_location + ' ' + second_location)
+                                place_state = str(ws_uasys['AW' + str(cache_row)].value)
 
                                 try:
-                                    missing_data = GoogleIntegration.get_details(query=place_name, location=db_location)
-                                    address_one, municipality, s_abbr, country = missing_data['Address'].split(", ")
+                                    missing_data = NominatimIntegration.query_structured(amenity=place_name,
+                                                                                         street=db_location,
+                                                                                         city=place_city,
+                                                                                         state=place_state,
+                                                                                         postalcode=place_zipcode)
+                                    ws_uasys['AY' + str(cache_row)].value = str(missing_data['ZipCode'])
+                                    ws_uasys['AQ' + str(cache_row)].value = str(missing_data['Name'])
+                                    ws_uasys['AV' + str(cache_row)].value = str(missing_data['Municipality'])
+                                    ws_uasys['AW' + str(cache_row)].value = str(missing_data['State'])
+                                    id_lst.append([missing_data['ID'], missing_data['Name']])
                                 except Exception as e:
                                     print(f"An exception of type {type(e).__name__} occurred in Camp. Details: {str(e)}")
                                     time.sleep(.5)
-                                    skip_camp = True
-                                    break
-                                # Handling the case when ", NY 22103":
-                                if not s_abbr.isalpha():
-                                    zipcode = str()
-                                    for char in s_abbr:
-                                        if char.isdigit():
-                                            zipcode += char
-                                    sep_abbr = s_abbr.split()
-                                    for index in range(len(sep_abbr)):
-                                        word = sep_abbr[index]
-                                        if word == zipcode:
-                                            sep_abbr.pop(index)
-                                            s_abbr = ''.join(sep_abbr)
-                                    ws_uasys['AY' + str(cache_row)].value = zipcode
-
-                                DataFile._split_address(ws_uasys, address_original=address_one, cache_row=cache_row,
-                                                        addr_line1_col='AS', addr_line2_col='AT')
-                                # Going to have to separate name for this one; saving for later
-                                ws_uasys['AQ' + str(cache_row)].value = missing_data['Name']
-                                ws_uasys['AV' + str(cache_row)].value = municipality
-                                ws_uasys['AW' + str(cache_row)].value = s_abbr
-                                temp_phone = missing_data['Phone Number'].replace('+', '')
-                                temp_phone = temp_phone.replace('-', '')
-                                ws_uasys['AZ' + str(cache_row)].value = temp_phone
-                                id_lst.append([missing_data['ID'], missing_data['Name']])
                                 skip_camp = True
                                 break
                 except Exception as e:
