@@ -1,7 +1,7 @@
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from difflib import SequenceMatcher
-from GoogleIntegration import GoogleIntegration
+from NominatimIntegration import NominatimIntegration
 import place_id
 import re
 import time
