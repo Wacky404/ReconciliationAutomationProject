@@ -90,7 +90,11 @@ class NominatimIntegration:
         try:
             query_result = s.get(url=url, params=params, timeout=0.5)
             details = json.loads(query_result.text)
-            details = dict(details[0])
+            # If no result is found from query then details is empty
+            if len(details) >= 1:
+                details = dict(details[0])
+            else:
+                return None
             address = str(details['address']['house_number'] + ' ' + details['address']['road'])
             state_in_details = str(details['address']['state'])
             state_abbreviated = str()
@@ -108,6 +112,8 @@ class NominatimIntegration:
             }
         except requests.exceptions.RequestException as e:
             print(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
+            time.sleep(r)
+            return None
 
 
 if __name__ == "__main__":

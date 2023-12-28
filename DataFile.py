@@ -1424,10 +1424,8 @@ class DataFile:
         print('Done!')
 
     @classmethod
-    def reconcile_google(cls, wb_uasys, ws_uasys, raw_file, null_values, gov_field_names, insti_field_names,
-                         camp_field_names):
-        # TODO: Getting exception of type IndexError, details: list index out of range
-        # Not moving this function into separate file, however the API reqs will be separate
+    def reconcile_nominatim(cls, wb_uasys, ws_uasys, raw_file, null_values, gov_field_names, insti_field_names,
+                            camp_field_names):
         count = int(0)
         for row in ws_uasys.iter_rows(min_row=3, min_col=5, values_only=False):
             count += 1
@@ -1451,6 +1449,7 @@ class DataFile:
             # print(f"This is row {count} cache: " + str(cache))
             # Here is where I will do API requests based on fields that are null_values
             # Skips are what keep track of API call per row for each section of data: reset to false each iteration
+            # recursive by row
             skip_gov = bool(False)
             skip_insti = bool(False)
             skip_camp = bool(False)
@@ -1463,7 +1462,7 @@ class DataFile:
                     if not skip_gov:
                         for key in gov_field_names:
                             if cache_column == key:
-                                # Assigning variable to call query:
+                                # Assigning variable to call query
                                 place_name = str(ws_uasys['E' + str(cache_row)].value)
                                 place_zipcode = str(ws_uasys['L' + str(cache_row)].value)
                                 place_city = str(ws_uasys['I' + str(cache_row)].value)
@@ -1479,14 +1478,15 @@ class DataFile:
                                                                                          city=place_city,
                                                                                          state=place_state,
                                                                                          postalcode=place_zipcode)
-                                    ws_uasys['L' + str(cache_row)].value = str(missing_data['ZipCode'])
-                                    ws_uasys['E' + str(cache_row)].value = str(missing_data['Name'])
-                                    ws_uasys['I' + str(cache_row)].value = str(missing_data['Municipality'])
-                                    ws_uasys['J' + str(cache_row)].value = str(missing_data['State'])
-                                    id_lst.append([missing_data['ID'], missing_data['Name']])
+                                    if missing_data is not None:
+                                        ws_uasys['L' + str(cache_row)].value = str(missing_data['ZipCode'])
+                                        ws_uasys['E' + str(cache_row)].value = str(missing_data['Name'])
+                                        ws_uasys['I' + str(cache_row)].value = str(missing_data['Municipality'])
+                                        ws_uasys['J' + str(cache_row)].value = str(missing_data['State'])
+                                        id_lst.append([missing_data['ID'], missing_data['Name']])
                                 except Exception as e:
-                                    print(f"An exception of type {type(e).__name__} occurred in Gov. Details: {str(e)}")
-                                    time.sleep(.5)
+                                    print(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
+
                                 skip_gov = True
                                 break
                     if not skip_insti:
@@ -1508,14 +1508,15 @@ class DataFile:
                                                                                          city=place_city,
                                                                                          state=place_state,
                                                                                          postalcode=place_zipcode)
-                                    ws_uasys['AB' + str(cache_row)].value = str(missing_data['ZipCode'])
-                                    ws_uasys['U' + str(cache_row)].value = str(missing_data['Name'])
-                                    ws_uasys['Y' + str(cache_row)].value = str(missing_data['Municipality'])
-                                    ws_uasys['Z' + str(cache_row)].value = str(missing_data['State'])
-                                    id_lst.append([missing_data['ID'], missing_data['Name']])
+                                    if missing_data is not None:
+                                        ws_uasys['AB' + str(cache_row)].value = str(missing_data['ZipCode'])
+                                        ws_uasys['U' + str(cache_row)].value = str(missing_data['Name'])
+                                        ws_uasys['Y' + str(cache_row)].value = str(missing_data['Municipality'])
+                                        ws_uasys['Z' + str(cache_row)].value = str(missing_data['State'])
+                                        id_lst.append([missing_data['ID'], missing_data['Name']])
                                 except Exception as e:
-                                    print(f"An exception of type {type(e).__name__} occurred in Insti. Details: {str(e)}")
-                                    time.sleep(.5)
+                                    print(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
+
                                 skip_insti = True
                                 break
                     if not skip_camp:
@@ -1542,14 +1543,15 @@ class DataFile:
                                                                                          city=place_city,
                                                                                          state=place_state,
                                                                                          postalcode=place_zipcode)
-                                    ws_uasys['AY' + str(cache_row)].value = str(missing_data['ZipCode'])
-                                    ws_uasys['AQ' + str(cache_row)].value = str(missing_data['Name'])
-                                    ws_uasys['AV' + str(cache_row)].value = str(missing_data['Municipality'])
-                                    ws_uasys['AW' + str(cache_row)].value = str(missing_data['State'])
-                                    id_lst.append([missing_data['ID'], missing_data['Name']])
+                                    if missing_data is not None:
+                                        ws_uasys['AY' + str(cache_row)].value = str(missing_data['ZipCode'])
+                                        ws_uasys['AQ' + str(cache_row)].value = str(missing_data['Name'])
+                                        ws_uasys['AV' + str(cache_row)].value = str(missing_data['Municipality'])
+                                        ws_uasys['AW' + str(cache_row)].value = str(missing_data['State'])
+                                        id_lst.append([missing_data['ID'], missing_data['Name']])
                                 except Exception as e:
-                                    print(f"An exception of type {type(e).__name__} occurred in Camp. Details: {str(e)}")
-                                    time.sleep(.5)
+                                    print(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
+
                                 skip_camp = True
                                 break
                 except Exception as e:

@@ -35,7 +35,7 @@ go = True
 while go:
     print('-------------------------------------------------------------------------------------')
     user_choice = int(input('| Do you want to Reconcile --> 1 \n| Reconcile+Cleanse --> 2 \n| Cleanse --> 3 '
-                            '\n| Reconcile+AI+Cleanse --> 4 \n| AI --> 5 \n| Test G --> 6 \n'))
+                            '\n| Reconcile+AI+Cleanse --> 4 \n| AI --> 5 \n| Test N --> 6 \n'))
     if user_choice == 1:
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
@@ -46,7 +46,7 @@ while go:
                                          df.ws_data_grab, df.ws_nces_grab)
             state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
                                               df.ws_data_grab, df.ws_nces_grab)
-            # state[i].reconcile_google(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
+            # state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
             # df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
             print('Reconcile is done for ' + str(state[i]) + '\n')
@@ -60,7 +60,7 @@ while go:
                                          df.ws_data_grab, df.ws_nces_grab)
             state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
                                               df.ws_data_grab, df.ws_nces_grab)
-            # state[i].reconcile_google(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
+            # state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
             # df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
             print('Reconcile is done for ' + str(state[i]) + ' moving on to cleaning....\n')
@@ -91,7 +91,7 @@ while go:
                                          df.ws_data_grab, df.ws_nces_grab)
             state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
                                               df.ws_data_grab, df.ws_nces_grab)
-            # state[i].reconcile_google(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
+            # state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
             # df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
             print('Reconcile is done for ' + str(state[i]) + ' moving on to AI....\n')
@@ -124,8 +124,8 @@ while go:
     elif user_choice == 6:
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
-            state[i].reconcile_google(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
-                                      df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
+            state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
+                                         df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
     else:
         print('You did not input any integer between 1 - 5, please try again\n')
 
