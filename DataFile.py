@@ -273,6 +273,13 @@ class DataFile:
                         ws_uasys['T' + str(cell.row)].value = "NULL"
                 except:
                     print(f'Error with {cell.coordinate}')
+        for cell in ws_uasys['AC']:
+            if cell.row >= 3:
+                try:
+                    if cell.value is None:
+                        ws_uasys['AC' + str(cell.row)].value = "NULL"
+                except:
+                    print(f'Error with {cell.coordinate}')
         yellow = 'FFFF00'
         red = 'FF6666'
         y_highlight = PatternFill(patternType='solid', fgColor=yellow)
@@ -374,13 +381,6 @@ class DataFile:
                 try:
                     if cell.value is None:
                         ws_uasys['AB' + str(cell.row)].fill = r_highlight
-                except:
-                    print(f'Error with {cell.coordinate}')
-        for cell in ws_uasys['AC']:
-            if cell.row >= 3:
-                try:
-                    if cell.value is None:
-                        ws_uasys['AC' + str(cell.row)].fill = y_highlight
                 except:
                     print(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AF']:
@@ -756,6 +756,13 @@ class DataFile:
                         ws_uasys['D' + str(cell.row)].value = "NULL"
                 except:
                     print(f'Error with {cell.coordinate}')
+        for cell in ws_uasys['M']:
+            if cell.row >= 3:
+                try:
+                    if cell.value is None:
+                        ws_uasys['M' + str(cell.row)].value = "NULL"
+                except:
+                    print(f'Error with {cell.coordinate}')
         yellow = 'FFFF00'
         red = 'FF6666'
         y_highlight = PatternFill(patternType='solid', fgColor=yellow)
@@ -854,13 +861,6 @@ class DataFile:
                         ws_uasys['L' + str(cell.row)].fill = r_highlight
                 except:
                     print('Error with cell')
-        for cell in ws_uasys['M']:
-            if cell.row >= 3:
-                try:
-                    if cell.value is None:
-                        ws_uasys['M' + str(cell.row)].fill = r_highlight
-                except:
-                    print(f'Error with {cell.coordinate}')
         for cell in ws_uasys['N']:
             if cell.row >= 3:
                 try:
@@ -1196,6 +1196,13 @@ class DataFile:
                         ws_uasys['AN' + str(cell.row)].value = "NULL"
             except:
                 print(f'Error with {cell.coordinate}')
+        for cell in ws_uasys['AZ']:
+            try:
+                if cell.row >= 3:
+                    if cell.value is None:
+                        ws_uasys['AZ' + str(cell.row)].value = "NULL"
+            except:
+                print(f'Error with {cell.coordinate}')
         yellow = 'FFFF00'
         red = 'FF6666'
         y_highlight = PatternFill(patternType='solid', fgColor=yellow)
@@ -1376,13 +1383,6 @@ class DataFile:
                 if cell.row >= 3:
                     if cell.value is None:
                         ws_uasys['AY' + str(cell.row)].fill = r_highlight
-            except:
-                print(f'Error with {cell.coordinate}')
-        for cell in ws_uasys['AZ']:
-            try:
-                if cell.row >= 3:
-                    if cell.value is None:
-                        ws_uasys['AZ' + str(cell.row)].fill = r_highlight
             except:
                 print(f'Error with {cell.coordinate}')
         for cell in ws_uasys['BA']:
