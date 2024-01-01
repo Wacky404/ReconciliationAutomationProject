@@ -1,4 +1,3 @@
-
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from difflib import SequenceMatcher
@@ -484,54 +483,129 @@ class DataFile:
                     location_name = str(grab.value)
                     if location_name == institution_govern:
                         address_grab = str(ws_data_grab['H' + str(grab.row)].value)
-                        address_lst = address_grab.split(', ')
+                        address_lst = address_grab.split(', ', maxsplit=7)
                         try:
                             if len(address_lst) == 1:
-                                address_grab = address_grab + ", N/A, N/A, N/A, N/A, N/A, N/A"
+                                address_grab = address_grab + ", NULL, NULL, NULL, NULL, NULL, NULL"
                             elif len(address_lst) == 2:
-                                address_grab = address_grab + ", N/A, N/A, N/A, N/A, N/A"
+                                address_grab = address_grab + ", NULL, NULL, NULL, NULL, NULL"
                             elif len(address_lst) == 3:
-                                address_grab = address_grab + ", N/A, N/A, N/A, N/A"
+                                address_grab = address_grab + ", NULL, NULL, NULL, NULL"
                             elif len(address_lst) == 4:
-                                address_grab = address_grab + ", N/A, N/A, N/A"
+                                address_grab = address_grab + ", NULL, NULL, NULL"
 
-                            GOV_ADDRESS_LINE_1, temp_LINE_2, temp_POBOX, temp_MUNI, temp_PCODE, temp1_Unknown, temp2_Unknown = address_grab.split(
-                                ', ')
+                            if len(address_grab.split(', ')) == 7:
+                                GOV_ADDRESS_LINE_1, temp_LINE_2, temp_POBOX, temp_MUNI, temp_PCODE, temp1_Unknown, \
+                                    temp2_Unknown = address_grab.split(', ')
 
-                            if GOV_ADDRESS_LINE_1.startswith('P.O. Box'):
-                                temp_PCODE = temp_POBOX
-                                temp_POBOX = GOV_ADDRESS_LINE_1
-                                GOV_ADDRESS_LINE_1 = 'N/A'
+                                if GOV_ADDRESS_LINE_1.startswith('P.O. Box'):
+                                    temp_PCODE = temp_POBOX
+                                    temp_POBOX = GOV_ADDRESS_LINE_1
+                                    GOV_ADDRESS_LINE_1 = 'N/A'
 
-                            if temp_POBOX.startswith('K'):
-                                temp_POBOX = 'N/A'
-                                temp_MUNI = temp_PCODE
-                                temp_PCODE = temp1_Unknown
+                                if temp_POBOX.startswith('K'):
+                                    temp_POBOX = 'N/A'
+                                    temp_MUNI = temp_PCODE
+                                    temp_PCODE = temp1_Unknown
 
-                            if temp_PCODE.startswith('P.O BOX'):
-                                temp_POBOX = temp_PCODE
-                                temp_PCODE = 'NULL'
+                                if temp_PCODE.startswith('P.O BOX'):
+                                    temp_POBOX = temp_PCODE
+                                    temp_PCODE = 'NULL'
 
-                            if not temp_LINE_2.startswith('Suite'):
-                                temp_MUNI = temp_LINE_2
-                                temp_LINE_2 = 'N/A'
-                                temp_PCODE = temp_POBOX
-                                temp_POBOX = 'N/A'
-                            if temp_MUNI.startswith(abbrev.upper()):
-                                temp_PCODE = temp_MUNI
-                                temp_MUNI = temp_POBOX
-                                temp_POBOX = 'N/A'
+                                if not temp_LINE_2.startswith('Suite'):
+                                    temp_MUNI = temp_LINE_2
+                                    temp_LINE_2 = 'N/A'
+                                    temp_PCODE = temp_POBOX
+                                    temp_POBOX = 'N/A'
+                                if temp_MUNI.startswith(abbrev.upper()):
+                                    temp_PCODE = temp_MUNI
+                                    temp_MUNI = temp_POBOX
+                                    temp_POBOX = 'N/A'
 
-                            GOV_ADDRESS_LINE_2 = temp_LINE_2.upper()
-                            GOV_PO_BOX_LINE = temp_POBOX.strip('.')
-                            GOV_MUNICIPALITY = temp_MUNI.upper()
-                            GOV_POSTAL_CODE = temp_PCODE.strip(abbrev.upper())
+                                GOV_ADDRESS_LINE_2 = temp_LINE_2.upper()
+                                GOV_PO_BOX_LINE = temp_POBOX.strip('.')
+                                GOV_MUNICIPALITY = temp_MUNI.upper()
+                                GOV_POSTAL_CODE = temp_PCODE.strip(abbrev.upper())
 
-                            ws_uasys['F' + str(cell.row)].value = GOV_ADDRESS_LINE_1
-                            ws_uasys['G' + str(cell.row)].value = GOV_ADDRESS_LINE_2
-                            ws_uasys['H' + str(cell.row)].value = GOV_PO_BOX_LINE
-                            ws_uasys['I' + str(cell.row)].value = GOV_MUNICIPALITY
-                            ws_uasys['L' + str(cell.row)].value = GOV_POSTAL_CODE
+                                ws_uasys['F' + str(cell.row)].value = GOV_ADDRESS_LINE_1
+                                ws_uasys['G' + str(cell.row)].value = GOV_ADDRESS_LINE_2
+                                ws_uasys['H' + str(cell.row)].value = GOV_PO_BOX_LINE
+                                ws_uasys['I' + str(cell.row)].value = GOV_MUNICIPALITY
+                                ws_uasys['L' + str(cell.row)].value = GOV_POSTAL_CODE
+
+                            elif len(address_grab.split(', ')) == 6:
+                                GOV_ADDRESS_LINE_1, temp_LINE_2, temp_POBOX, temp_MUNI, temp_PCODE, temp1_Unknown = \
+                                    address_grab.split(', ')
+
+                                if GOV_ADDRESS_LINE_1.startswith('P.O. Box'):
+                                    temp_PCODE = temp_POBOX
+                                    temp_POBOX = GOV_ADDRESS_LINE_1
+                                    GOV_ADDRESS_LINE_1 = 'N/A'
+
+                                if temp_POBOX.startswith('K'):
+                                    temp_POBOX = 'N/A'
+                                    temp_MUNI = temp_PCODE
+                                    temp_PCODE = temp1_Unknown
+
+                                if temp_PCODE.startswith('P.O BOX'):
+                                    temp_POBOX = temp_PCODE
+                                    temp_PCODE = 'NULL'
+
+                                if not temp_LINE_2.startswith('Suite'):
+                                    temp_MUNI = temp_LINE_2
+                                    temp_LINE_2 = 'N/A'
+                                    temp_PCODE = temp_POBOX
+                                    temp_POBOX = 'N/A'
+                                if temp_MUNI.startswith(abbrev.upper()):
+                                    temp_PCODE = temp_MUNI
+                                    temp_MUNI = temp_POBOX
+                                    temp_POBOX = 'N/A'
+
+                                GOV_ADDRESS_LINE_2 = temp_LINE_2.upper()
+                                GOV_PO_BOX_LINE = temp_POBOX.strip('.')
+                                GOV_MUNICIPALITY = temp_MUNI.upper()
+                                GOV_POSTAL_CODE = temp_PCODE.strip(abbrev.upper())
+
+                                ws_uasys['F' + str(cell.row)].value = GOV_ADDRESS_LINE_1
+                                ws_uasys['G' + str(cell.row)].value = GOV_ADDRESS_LINE_2
+                                ws_uasys['H' + str(cell.row)].value = GOV_PO_BOX_LINE
+                                ws_uasys['I' + str(cell.row)].value = GOV_MUNICIPALITY
+                                ws_uasys['L' + str(cell.row)].value = GOV_POSTAL_CODE
+
+                            elif len(address_grab.split(', ')) == 5:
+                                GOV_ADDRESS_LINE_1, temp_LINE_2, temp_POBOX, temp_MUNI, temp_PCODE = \
+                                    address_grab.split(', ')
+
+                                if GOV_ADDRESS_LINE_1.startswith('P.O. Box'):
+                                    temp_PCODE = temp_POBOX
+                                    temp_POBOX = GOV_ADDRESS_LINE_1
+                                    GOV_ADDRESS_LINE_1 = 'N/A'
+
+                                if temp_PCODE.startswith('P.O BOX'):
+                                    temp_POBOX = temp_PCODE
+                                    temp_PCODE = 'NULL'
+
+                                if not temp_LINE_2.startswith('Suite'):
+                                    temp_MUNI = temp_LINE_2
+                                    temp_LINE_2 = 'N/A'
+                                    temp_PCODE = temp_POBOX
+                                    temp_POBOX = 'N/A'
+                                if temp_MUNI.startswith(abbrev.upper()):
+                                    temp_PCODE = temp_MUNI
+                                    temp_MUNI = temp_POBOX
+                                    temp_POBOX = 'N/A'
+
+                                GOV_ADDRESS_LINE_2 = temp_LINE_2.upper()
+                                GOV_PO_BOX_LINE = temp_POBOX.strip('.')
+                                GOV_MUNICIPALITY = temp_MUNI.upper()
+                                GOV_POSTAL_CODE = temp_PCODE.strip(abbrev.upper())
+
+                                ws_uasys['F' + str(cell.row)].value = GOV_ADDRESS_LINE_1
+                                ws_uasys['G' + str(cell.row)].value = GOV_ADDRESS_LINE_2
+                                ws_uasys['H' + str(cell.row)].value = GOV_PO_BOX_LINE
+                                ws_uasys['I' + str(cell.row)].value = GOV_MUNICIPALITY
+                                ws_uasys['L' + str(cell.row)].value = GOV_POSTAL_CODE
+
                         except Exception as e:
                             print(f"An exception of type {type(e).__name__} occurred, NULL assigned. Details: {str(e)}")
                             ws_uasys['F' + str(cell.row)].value = 'NULL'
@@ -828,6 +902,8 @@ class DataFile:
                 try:
                     if cell.value is None:
                         ws_uasys['H' + str(cell.row)].value = "N/A"
+                    elif cell.value == 'None':
+                        ws_uasys['H' + str(cell.row)].value = "N/A"
                 except:
                     print(f'Error with {cell.coordinate}')
         for cell in ws_uasys['I']:
@@ -987,7 +1063,7 @@ class DataFile:
                     if location_name.upper() == organization_name.upper():
                         CAMP_PhoneNumberFull = str(ws_data_grab['I' + str(grab.row)].value)
                         address_grab = str(ws_data_grab['H' + str(grab.row)].value)
-                        address_lst = address_grab.split(', ')
+                        address_lst = address_grab.split(', ', maxsplit=7)
                         try:
                             if len(address_lst) == 1:
                                 address_grab = address_grab + ", N/A, N/A, N/A, N/A, N/A, N/A"
@@ -998,38 +1074,102 @@ class DataFile:
                             elif len(address_lst) == 4:
                                 address_grab = address_grab + ", N/A, N/A, N/A"
 
-                            GOV_ADDRESS_LINE_1, temp_LINE_2, temp_POBOX, temp_MUNI, temp_PCODE, temp1_Unknown, temp2_Unknown = address_grab.split(
-                                ', ')
+                            if len(address_grab.split(', ')) == 7:
+                                GOV_ADDRESS_LINE_1, temp_LINE_2, temp_POBOX, temp_MUNI, temp_PCODE, temp1_Unknown, \
+                                    temp2_Unknown = address_grab.split(', ')
 
-                            if GOV_ADDRESS_LINE_1.startswith('P.O. Box'):
-                                temp_PCODE = temp_POBOX
-                                temp_POBOX = GOV_ADDRESS_LINE_1
-                                GOV_ADDRESS_LINE_1 = str('N/A')
+                                if GOV_ADDRESS_LINE_1.startswith('P.O. Box'):
+                                    temp_PCODE = temp_POBOX
+                                    temp_POBOX = GOV_ADDRESS_LINE_1
+                                    GOV_ADDRESS_LINE_1 = str('N/A')
 
-                            if temp_POBOX.startswith('K'):
-                                temp_POBOX = 'N/A'
-                                temp_MUNI = temp_PCODE
-                                temp_PCODE = temp1_Unknown
+                                if temp_POBOX.startswith('K'):
+                                    temp_POBOX = 'N/A'
+                                    temp_MUNI = temp_PCODE
+                                    temp_PCODE = temp1_Unknown
 
-                            if temp_PCODE.startswith('P.O BOX'):
-                                temp_POBOX = temp_PCODE
-                                temp_PCODE = 'NULL'
+                                if temp_PCODE.startswith('P.O BOX'):
+                                    temp_POBOX = temp_PCODE
+                                    temp_PCODE = 'NULL'
 
-                            if not temp_LINE_2.startswith('Suite'):
-                                temp_MUNI = temp_LINE_2
-                                temp_LINE_2 = 'N/A'
-                                temp_PCODE = temp_POBOX
-                                temp_POBOX = 'N/A'
+                                if not temp_LINE_2.startswith('Suite'):
+                                    temp_MUNI = temp_LINE_2
+                                    temp_LINE_2 = 'N/A'
+                                    temp_PCODE = temp_POBOX
+                                    temp_POBOX = 'N/A'
 
-                            CAMP_ADDRESS_LINE_2 = temp_LINE_2.upper()
-                            CAMP_PO_BOX_LINE = temp_POBOX.strip('.')
-                            CAMP_MUNICIPALITY = temp_MUNI.upper()
-                            CAMP_POSTAL_CODE = temp_PCODE.strip(abbrev)
+                                CAMP_ADDRESS_LINE_2 = temp_LINE_2.upper()
+                                CAMP_PO_BOX_LINE = temp_POBOX.strip('.')
+                                CAMP_MUNICIPALITY = temp_MUNI.upper()
+                                CAMP_POSTAL_CODE = temp_PCODE.strip(abbrev)
 
-                            ws_uasys['AT' + str(cell.row)].value = CAMP_ADDRESS_LINE_2
-                            ws_uasys['AU' + str(cell.row)].value = CAMP_PO_BOX_LINE
-                            ws_uasys['AV' + str(cell.row)].value = CAMP_MUNICIPALITY
-                            ws_uasys['AY' + str(cell.row)].value = CAMP_POSTAL_CODE
+                                ws_uasys['AT' + str(cell.row)].value = CAMP_ADDRESS_LINE_2
+                                ws_uasys['AU' + str(cell.row)].value = CAMP_PO_BOX_LINE
+                                ws_uasys['AV' + str(cell.row)].value = CAMP_MUNICIPALITY
+                                ws_uasys['AY' + str(cell.row)].value = CAMP_POSTAL_CODE
+
+                            elif len(address_grab.split(', ')) == 6:
+                                GOV_ADDRESS_LINE_1, temp_LINE_2, temp_POBOX, temp_MUNI, temp_PCODE, temp1_Unknown = \
+                                    address_grab.split(', ')
+
+                                if GOV_ADDRESS_LINE_1.startswith('P.O. Box'):
+                                    temp_PCODE = temp_POBOX
+                                    temp_POBOX = GOV_ADDRESS_LINE_1
+                                    GOV_ADDRESS_LINE_1 = str('N/A')
+
+                                if temp_POBOX.startswith('K'):
+                                    temp_POBOX = 'N/A'
+                                    temp_MUNI = temp_PCODE
+                                    temp_PCODE = temp1_Unknown
+
+                                if temp_PCODE.startswith('P.O BOX'):
+                                    temp_POBOX = temp_PCODE
+                                    temp_PCODE = 'NULL'
+
+                                if not temp_LINE_2.startswith('Suite'):
+                                    temp_MUNI = temp_LINE_2
+                                    temp_LINE_2 = 'N/A'
+                                    temp_PCODE = temp_POBOX
+                                    temp_POBOX = 'N/A'
+
+                                CAMP_ADDRESS_LINE_2 = temp_LINE_2.upper()
+                                CAMP_PO_BOX_LINE = temp_POBOX.strip('.')
+                                CAMP_MUNICIPALITY = temp_MUNI.upper()
+                                CAMP_POSTAL_CODE = temp_PCODE.strip(abbrev)
+
+                                ws_uasys['AT' + str(cell.row)].value = CAMP_ADDRESS_LINE_2
+                                ws_uasys['AU' + str(cell.row)].value = CAMP_PO_BOX_LINE
+                                ws_uasys['AV' + str(cell.row)].value = CAMP_MUNICIPALITY
+                                ws_uasys['AY' + str(cell.row)].value = CAMP_POSTAL_CODE
+
+                            elif len(address_grab.split(', ')) == 5:
+                                GOV_ADDRESS_LINE_1, temp_LINE_2, temp_POBOX, temp_MUNI, temp_PCODE = \
+                                    address_grab.split(', ')
+
+                                if GOV_ADDRESS_LINE_1.startswith('P.O. Box'):
+                                    temp_PCODE = temp_POBOX
+                                    temp_POBOX = GOV_ADDRESS_LINE_1
+                                    GOV_ADDRESS_LINE_1 = str('N/A')
+
+                                if temp_PCODE.startswith('P.O BOX'):
+                                    temp_POBOX = temp_PCODE
+                                    temp_PCODE = 'NULL'
+
+                                if not temp_LINE_2.startswith('Suite'):
+                                    temp_MUNI = temp_LINE_2
+                                    temp_LINE_2 = 'N/A'
+                                    temp_PCODE = temp_POBOX
+                                    temp_POBOX = 'N/A'
+
+                                CAMP_ADDRESS_LINE_2 = temp_LINE_2.upper()
+                                CAMP_PO_BOX_LINE = temp_POBOX.strip('.')
+                                CAMP_MUNICIPALITY = temp_MUNI.upper()
+                                CAMP_POSTAL_CODE = temp_PCODE.strip(abbrev)
+
+                                ws_uasys['AT' + str(cell.row)].value = CAMP_ADDRESS_LINE_2
+                                ws_uasys['AU' + str(cell.row)].value = CAMP_PO_BOX_LINE
+                                ws_uasys['AV' + str(cell.row)].value = CAMP_MUNICIPALITY
+                                ws_uasys['AY' + str(cell.row)].value = CAMP_POSTAL_CODE
                         except Exception as e:
                             print(f"An exception of type {type(e).__name__} occurred, NULL assigned. Details: {str(e)}")
                             ws_uasys['AT' + str(cell.row)].value = 'NULL'
@@ -1139,7 +1279,7 @@ class DataFile:
                     postal_code_list = str(POSTAL_CODE).split()
                     word = postal_code_list[0]
                     if word.isalpha() and len(word) <= 2:
-                        STATE_REGION_SHORT = ' '.join(word)
+                        STATE_REGION_SHORT = ''.join(word)
                         ws_uasys['AW' + str(cell.row)].value = STATE_REGION_SHORT
                         ws_uasys['AY' + str(cell.row)].value = str(cell.value).strip(STATE_REGION_SHORT)
                 except Exception as e:

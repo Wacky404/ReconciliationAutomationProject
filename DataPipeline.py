@@ -23,6 +23,7 @@ while i < amount:
         worksheet = []
         user_worksheet = str(input('Exact worksheet name: '))
         worksheet.append(user_worksheet)
+
         abrev_state = []
         user_abrev_state = str(input('State abbreviation: '))
         abrev_state.append(user_abrev_state)
