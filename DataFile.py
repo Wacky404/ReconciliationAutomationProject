@@ -76,7 +76,7 @@ class DataFile:
         'AV': 'camp_municipality',
         'AY': 'camp_postal_code',
     }
-    null_values = ('None', 'Null', '')
+    null_values = ('NONE', 'None', 'NULL', 'Null', '')
 
     def __init__(self, raw_file, sheet_name, abbrev):
         self.raw_file = raw_file
