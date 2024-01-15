@@ -6,6 +6,8 @@ import place_id
 import re
 import time
 
+# TODO: Fix campus naming; in Campus Section getting: N/A CAMPUS
+
 
 class DataFile:
     wb_data_grab = load_workbook("AccreditationData.xlsx")
@@ -984,19 +986,30 @@ class DataFile:
             if cell.row >= 3:
                 try:
                     lookup_institution = ws_uasys['AP' + str(cell.row)].value
+                    used_cell_ar = False
                     for grab in ws_data_grab['E']:
                         if grab.value.upper == lookup_institution.upper:
                             additional_location = ws_data_grab['D' + str(grab.row)].value
                             address_additional_location = ws_data_grab['H' + str(grab.row)].value
                             cell_prev = int(cell.row) - 1
-                            prev_additional_location = ws_uasys['AQ' + str(cell_prev)].value
+                            prev_additional_location = ws_uasys['AQ' + str(cell_prev)].value if \
+                                str(ws_uasys['AQ' + str(cell_prev)].value) != 'N/A' else \
+                                ws_uasys['AR' + str(cell_prev)].value
+                            used_cell_ar = True if str(ws_uasys['AQ' + str(cell_prev)].value) == 'N/A' else False
                             if additional_location.upper != prev_additional_location.upper \
-                                    and additional_location is not None:
+                                    and additional_location is not None and used_cell_ar is False:
                                 ws_uasys['AQ' + str(cell.row)].value = str(additional_location).upper
                                 ws_uasys['AS' + str(cell.row)].value = str(address_additional_location).upper
                                 wb_uasys.save(raw_file)
-                            else:
+                            elif used_cell_ar is False:
                                 ws_uasys['AQ' + str(cell.row)].value = str(lookup_institution).upper
+                            elif additional_location.upper != prev_additional_location.upper \
+                                    and additional_location is not None and used_cell_ar is True:
+                                ws_uasys['AR' + str(cell.row)].value = str(additional_location).upper
+                                ws_uasys['AS' + str(cell.row)].value = str(address_additional_location).upper
+                                wb_uasys.save(raw_file)
+                            elif used_cell_ar is True:
+                                ws_uasys['AR' + str(cell.row)].value = str(lookup_institution).upper
                 except Exception as e:
                     print(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Get CAMP_CAMPUS_NAME CAMP_OPED_ID and CAMP_IPED_ID from LocationName OpeId and IpedsUnitIds
