@@ -50,7 +50,7 @@ while go:
             state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
                                          df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
-            print('Reconcile is done for ' + str(state[i]) + '\n')
+            print('Reconcile is done for ' + str(state[i].sheet_name) + '\n')
     elif user_choice == 2:
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
@@ -64,24 +64,24 @@ while go:
             state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
                                          df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
-            print('Reconcile is done for ' + str(state[i]) + ' moving on to cleaning....\n')
+            print('Reconcile is done for ' + str(state[i].sheet_name) + ' moving on to cleaning....\n')
 
             state[i].clean_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
             state[i].clean_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
             state[i].clean_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
 
-            print('Clean is done for ' + str(state[i]) + '\n')
+            print('Clean is done for ' + str(state[i].sheet_name) + '\n')
     elif user_choice == 3:
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
-            print('Clean is starting for ' + str(state[i]))
+            print('Clean is starting for ' + str(state[i].sheet_name))
 
             state[i].clean_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
             state[i].clean_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
             state[i].clean_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
 
-            print('Clean is done for ' + str(state[i]) + '\n')
+            print('Clean is done for ' + str(state[i].sheet_name) + '\n')
     elif user_choice == 4:
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
@@ -95,33 +95,33 @@ while go:
             state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
                                          df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
-            print('Reconcile is done for ' + str(state[i]) + ' moving on to AI....\n')
+            print('Reconcile is done for ' + str(state[i].sheet_name) + ' moving on to AI....\n')
 
             state_ai = ai(file_location[i], worksheet[i], abrev_state[i])
             state_ai.ai_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
             state_ai.ai_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
 
-            print('AI is done for ' + str(state[i]) + ' moving on to cleaning....\n')
+            print('AI is done for ' + str(state[i].sheet_name) + ' moving on to cleaning....\n')
 
             state[i].clean_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
             state[i].clean_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
             state[i].clean_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
 
-            print('Clean is done for ' + str(state[i]) + '\n')
+            print('Clean is done for ' + str(state[i].sheet_name) + '\n')
     elif user_choice == 5:
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
-            print('AI is starting for ' + str(state[i]))
+            print('AI is starting for ' + str(state[i].sheet_name))
 
             state_ai = ai(file_location[i], worksheet[i], abrev_state[i])
             state_ai.ai_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
 
-            print('AI is done for ' + str(state[i]) + ' institutions\n')
+            print('AI is done for ' + str(state[i].sheet_name) + ' institutions\n')
 
             state_ai.ai_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
 
-            print('AI is done for ' + str(state[i]) + '\n')
+            print('AI is done for ' + str(state[i].sheet_name) + '\n')
     elif user_choice == 6:
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])

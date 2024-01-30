@@ -3,6 +3,8 @@ from DataFile import DataFile
 import openai
 import time
 
+# using gpt 4 is token expensive
+
 
 class ReconcileAI:
 

@@ -6,7 +6,7 @@ import place_id
 import re
 import time
 
-# TODO: Fix campus naming; in Campus Section getting: N/A CAMPUS
+# TODO: Fix campus naming; in Campus Section getting: N/A CAMPUS and also review data placement in address fields
 
 
 class DataFile:
@@ -1017,7 +1017,8 @@ class DataFile:
         for cell in ws_uasys['AQ']:
             try:
                 if cell.row >= 3:
-                    organization_name = str(cell.value)
+                    organization_name = str(cell.value) if str(cell.value) != 'N/A' else \
+                        str(ws_uasys['AR' + str(cell.row)].value)
                     organization_address = str(ws_uasys['AS' + str(cell.row)].value)
                     print(f"Populating {organization_name} fields.....")
                     for grab in ws_data_grab['D']:
@@ -1406,7 +1407,6 @@ class DataFile:
                 if cell.row >= 3:
                     campus_name = str(ws_uasys['AQ' + str(cell.row)].value).lower()
                     official_name = str(ws_uasys['AP' + str(cell.row)].value).lower()
-                    # This isn't working as intended
                     if campus_name == official_name:
                         ws_uasys['AQ' + str(cell.row)].value = "MAIN CAMPUS"
                         ws_uasys['AR' + str(cell.row)].value = "N/A"
