@@ -1,13 +1,36 @@
+# TODO: Configure the script to check a folder for files and run them automatically, replacing user-input
 from DataFile import DataFile as df
 from ReconcileAI import ReconcileAI as ai
+from pathlib import Path
+import os.path as osp
+import os
 
-while True:
+os_home = osp.expanduser("~")
+path_to_doc = osp.join(os_home, str('Documents'))
+input_dir = osp.join(path_to_doc, str('Scheduled'))
+output_dir = osp.join(path_to_doc, str('PipelineOutput'))
+
+
+def configure():
+    """ Check if directory exists that we will use to store excel workbooks to run on schedule """
     try:
-        amount = int(input('How many states are you reconciling/cleansing?(integer): '))
-        break
-    except Exception as e:
+        for directory in [input_dir, output_dir]:
+            os.makedirs(name=directory, exist_ok=False)
+            print(f"Directory {directory} created")
+    except FileExistsError as e:
         print(f"An exception of type {type(e).__name__} occurred. "
-              f"Details: Oops... it looks like you didn't input an integer, please try again")
+              f"Details: This is okay, output will save in existing directory.")
+
+
+amount = int()
+pathlist = Path(input_dir).glob('**/*.xlsx')
+for path in pathlist:
+    try:
+        amount += 1
+        path = str(path)
+        print(path)
+    except Exception as e:
+        print(f"An exception of type {type(e).__name__} occurred.")
 
 i = 0
 while i < amount:
