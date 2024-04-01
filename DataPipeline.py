@@ -76,9 +76,7 @@ else:
         f"Dir: {input_dir} missing/denied; please check dir and/or run --configure if needed.")
     sys.exit()
 
-if osp.exists(output_dir):
-    continue
-else:
+if osp.exists(output_dir) == False:
     print(
         f"Dir: {output_dir} missing/denied; please check dir and/or run --configure if needed.")
     sys.exit()
