@@ -2,6 +2,7 @@ from openpyxl import load_workbook
 from DataFile import DataFile
 import openai
 import time
+import os.path as osp
 
 # using gpt 4 is token expensive
 
@@ -10,6 +11,10 @@ class ReconcileAI:
 
     def __init__(self, raw_file, sheet_name, abbrev):
         self.raw_file = raw_file
+        base_file: str = osp.basename(self.raw_file)
+        transf_f: str = osp.join(osp.expanduser(
+            '~'), 'Documents', 'PipelineOutput', base_file)
+        self.transf_file = transf_f if transf_f is not None else self.raw_file
         self.sheet_name = sheet_name
         self.abbrev = abbrev
         self.wb_uasys = load_workbook(raw_file)

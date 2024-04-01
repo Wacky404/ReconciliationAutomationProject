@@ -1,5 +1,3 @@
-# Left Off: Do return statement for method and go back to frontend and configure
-# the arguments to caller
 from pprint import pprint
 import asyncio
 import requests

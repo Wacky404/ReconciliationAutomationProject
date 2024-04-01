@@ -6,6 +6,7 @@ import logging
 import argparse
 import os.path as osp
 import os
+import sys
 import re
 
 os_home = osp.expanduser("~")
@@ -16,14 +17,14 @@ output_dir = osp.join(path_to_doc, str('PipelineOutput'))
 
 def configure() -> None:
     """ Check/Create if directory exists that we will use to store excel workbooks to run on schedule """
-    try:
-        for directory in [input_dir, output_dir]:
+    for directory in [input_dir, output_dir]:
+        try:
             os.makedirs(name=directory, exist_ok=False)
             print(f"Directory {directory} created")
 
-    except FileExistsError as e:
-        print(f"An exception of type {type(e).__name__} occurred. "
-              f"Details: This is okay, output will save in existing {directory}.")
+        except FileExistsError as e:
+            print(f"An exception of type {type(e).__name__} occurred. "
+                  f"Details: This is okay, output will save in existing {directory}.")
 
 
 def remove_fls(fls: list) -> None:
@@ -68,6 +69,7 @@ args = parser.parse_args()
 
 if args.configure:
     configure()
+    sys.exit()
 
 if osp.exists(input_dir):
     pathlist: list = list(Path(input_dir).glob('**/*.xlsx'))
@@ -76,7 +78,7 @@ else:
         f"Dir: {input_dir} missing/denied; please check dir and/or run --configure if needed.")
     sys.exit()
 
-if osp.exists(output_dir) == False:
+if not osp.exists(output_dir):
     print(
         f"Dir: {output_dir} missing/denied; please check dir and/or run --configure if needed.")
     sys.exit()
@@ -134,13 +136,13 @@ while go:
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
-            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.ws_data_grab,
+            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.ws_data_grab,
                                            df.ws_nces_grab)
-            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
+            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
                                          df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
+            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
                                               df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
+            state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file,
                                          df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
             print('Reconcile is done for ' + str(state[i].sheet_name) + '\n')
@@ -155,24 +157,24 @@ while go:
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
-            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.ws_data_grab,
+            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.ws_data_grab,
                                            df.ws_nces_grab)
-            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
+            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
                                          df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
+            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
                                               df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
+            state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file,
                                          df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
             print('Reconcile is done for ' +
                   str(state[i].sheet_name) + ' moving on to cleaning....\n')
 
             state[i].clean_governing(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
+                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
             state[i].clean_institution(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
+                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
             state[i].clean_campuslocation(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
+                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
 
             print('Clean is done for ' + str(state[i].sheet_name) + '\n')
 
@@ -189,11 +191,11 @@ while go:
             print('Clean is starting for ' + str(state[i].sheet_name))
 
             state[i].clean_governing(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
+                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
             state[i].clean_institution(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
+                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
             state[i].clean_campuslocation(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
+                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
 
             print('Clean is done for ' + str(state[i].sheet_name) + '\n')
 
@@ -207,13 +209,13 @@ while go:
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
-            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.ws_data_grab,
+            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.ws_data_grab,
                                            df.ws_nces_grab)
-            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
+            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
                                          df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, state[i].abbrev,
+            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
                                               df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
+            state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file,
                                          df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
             print('Reconcile is done for ' +
@@ -221,19 +223,19 @@ while go:
 
             state_ai = ai(file_location[i], worksheet[i], abrev_state[i])
             state_ai.ai_institution(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
+                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file)
             state_ai.ai_campuslocation(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
+                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file)
 
             print('AI is done for ' +
                   str(state[i].sheet_name) + ' moving on to cleaning....\n')
 
             state[i].clean_governing(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
+                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
             state[i].clean_institution(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
+                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
             state[i].clean_campuslocation(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
+                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
 
             print('Clean is done for ' + str(state[i].sheet_name) + '\n')
 
@@ -251,13 +253,13 @@ while go:
 
             state_ai = ai(file_location[i], worksheet[i], abrev_state[i])
             state_ai.ai_institution(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
+                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file)
 
             print('AI is done for ' +
                   str(state[i].sheet_name) + ' institutions\n')
 
             state_ai.ai_campuslocation(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file)
+                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file)
 
             print('AI is done for ' + str(state[i].sheet_name) + '\n')
 
@@ -270,7 +272,7 @@ while go:
 
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
-            state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
+            state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file,
                                          df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
         print('Removing jobs from Scheduled Dir...')

@@ -1,3 +1,4 @@
+# TODO: fix save location of workbook, self.transf_file not working
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from difflib import SequenceMatcher
@@ -6,8 +7,6 @@ import place_id
 import os.path as osp
 import re
 import time
-
-# TODO: Fix campus naming; in Campus Section getting: N/A CAMPUS and also review data placement in address fields
 
 
 class DataFile:
@@ -85,9 +84,9 @@ class DataFile:
         self.raw_file = raw_file
         # Check on this - Wayne
         base_file: str = osp.basename(self.raw_file)
-        transf_file: str = osp.join(osp.expanduser(
+        transf_f: str = osp.join(osp.expanduser(
             '~'), 'Documents', 'PipelineOutput', base_file)
-        self.transf_file = transf_file if transf_file is not None else self.raw_file
+        self.transf_file = transf_f if transf_f is not None else self.raw_file
         self.sheet_name = sheet_name
         self.abbrev = abbrev
         self.wb_uasys = load_workbook(raw_file)
@@ -146,7 +145,7 @@ class DataFile:
                                  ].value = address_line_1.strip(address_line_2)
 
     @classmethod
-    def reconcile_institution(cls, wb_uasys, ws_uasys, raw_file, ws_data_grab, ws_nces_grab):
+    def reconcile_institution(cls, wb_uasys, ws_uasys, file_location, ws_data_grab, ws_nces_grab):
         # Inputs Autogen in field cells
         for cell in ws_uasys['Q']:
             if cell.row >= 3:
@@ -279,10 +278,10 @@ class DataFile:
                 except Exception as e:
                     print(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
-        wb_uasys.save(self.transf_file)
+        wb_uasys.save(file_location)
 
     @classmethod
-    def clean_institution(cls, wb_uasys, ws_uasys, raw_file, full_spellings):
+    def clean_institution(cls, wb_uasys, ws_uasys, file_location, full_spellings):
         for cell in ws_uasys['R']:
             if cell.row >= 3:
                 try:
@@ -382,7 +381,7 @@ class DataFile:
                     address_two = str(cell.value)
                     if cell.value is None:
                         ws_uasys['X' + str(cell.row)].value = 'N/A'
-                        wb_uasys.save(self.transf_file)
+                        wb_uasys.save(file_location)
                     elif address_two.find('PO') == -1:
                         ws_uasys['X' + str(cell.row)].fill = y_highlight
                 except:
@@ -454,10 +453,10 @@ class DataFile:
                         ws_uasys['AJ' + str(cell.row)].value = "N/A"
                 except:
                     print(f'Error with {cell.coordinate}')
-        wb_uasys.save(self.transf_file)
+        wb_uasys.save(file_location)
 
     @classmethod
-    def reconcile_governing(cls, wb_uasys, ws_uasys, raw_file, abbrev, ws_data_grab, ws_nces_grab):
+    def reconcile_governing(cls, wb_uasys, ws_uasys, file_location, abbrev, ws_data_grab, ws_nces_grab):
         # If GOVERNING_ORGANIZATION_ID is blank then assign the cell AutoGen
         for cell in ws_uasys['A']:
             if cell.row >= 3:
@@ -924,10 +923,10 @@ class DataFile:
                     ws_uasys['J' + str(cell.row)].value = state
                     ws_uasys['L' + str(cell.row)].value = zipcode
                     ws_uasys['M' + str(cell.row)].value = phonenumber
-        wb_uasys.save(self.transf_file)
+        wb_uasys.save(file_location)
 
     @classmethod
-    def clean_governing(cls, wb_uasys, ws_uasys, raw_file, full_spellings):
+    def clean_governing(cls, wb_uasys, ws_uasys, file_location, full_spellings):
         for cell in ws_uasys['B']:
             if cell.row >= 3:
                 try:
@@ -1082,10 +1081,10 @@ class DataFile:
                         ws_uasys['P' + str(cell.row)].value = "N/A"
                 except:
                     print(f'Error with {cell.coordinate}')
-        wb_uasys.save(self.transf_file)
+        wb_uasys.save(file_location)
 
     @classmethod
-    def reconcile_campuslocation(cls, wb_uasys, ws_uasys, raw_file, abbrev, ws_data_grab, ws_nces_grab):
+    def reconcile_campuslocation(cls, wb_uasys, ws_uasys, file_location, abbrev, ws_data_grab, ws_nces_grab):
         # If CAMPUS_LOCATION_ID is blank then assign the cell AutoGen
         for cell in ws_uasys['AK']:
             try:
@@ -1131,7 +1130,7 @@ class DataFile:
                                          ].value = str(additional_location).upper
                                 ws_uasys['AS' + str(cell.row)].value = str(
                                     address_additional_location).upper
-                                wb_uasys.save(self.transf_file)
+                                wb_uasys.save(file_location)
                             elif used_cell_ar is False:
                                 ws_uasys['AQ' + str(cell.row)
                                          ].value = str(lookup_institution).upper
@@ -1141,7 +1140,7 @@ class DataFile:
                                          ].value = str(additional_location).upper
                                 ws_uasys['AS' + str(cell.row)].value = str(
                                     address_additional_location).upper
-                                wb_uasys.save(self.transf_file)
+                                wb_uasys.save(file_location)
                             elif used_cell_ar is True:
                                 ws_uasys['AR' + str(cell.row)
                                          ].value = str(lookup_institution).upper
@@ -1505,10 +1504,10 @@ class DataFile:
                 except Exception as e:
                     print(
                         f"An exception of type {type(e).__name__} occurred, NULL assigned. Details: {str(e)}")
-        wb_uasys.save(self.transf_file)
+        wb_uasys.save(file_location)
 
     @classmethod
-    def clean_campuslocation(cls, wb_uasys, ws_uasys, raw_file, full_spellings):
+    def clean_campuslocation(cls, wb_uasys, ws_uasys, file_location, full_spellings):
         for cell in ws_uasys['AK']:
             try:
                 if cell.row >= 3:
@@ -1577,7 +1576,7 @@ class DataFile:
                         ws_uasys['AP' + str(cell.row)].fill = r_highlight
             except:
                 print(f'Error with {cell.coordinate}')
-        wb_uasys.save(self.transf_file)
+        wb_uasys.save(file_location)
         campus_no = (
             "regional",
             "health",
@@ -1603,7 +1602,7 @@ class DataFile:
                         ws_uasys['AQ' + str(cell.row)].value = "MAIN CAMPUS"
                         ws_uasys['AR' + str(cell.row)].value = "N/A"
                     sep_campus_name = campus_name.split()
-                    wb_uasys.save(self.transf_file)
+                    wb_uasys.save(file_location)
                     for match in campus_no:
                         for index in range(len(sep_campus_name)):
                             word = sep_campus_name[index]
@@ -1611,7 +1610,7 @@ class DataFile:
                                 ws_uasys['AR' + str(cell.row)
                                          ].value = campus_name.upper()
                                 ws_uasys['AQ' + str(cell.row)].value = "N/A"
-                    wb_uasys.save(self.transf_file)
+                    wb_uasys.save(file_location)
                     check_na = str(ws_uasys['AQ' + str(cell.row)].value)
                     check_na = check_na.lower()
                     if check_na != 'n/a' or check_na != 'main campus':
@@ -1655,7 +1654,7 @@ class DataFile:
                                      ].value = campus.upper()
             except:
                 print(f'Error with {cell.coordinate}')
-        wb_uasys.save(self.transf_file)
+        wb_uasys.save(file_location)
         for cell in ws_uasys['AR']:
             try:
                 if cell.row >= 3:
@@ -1701,7 +1700,7 @@ class DataFile:
                     address_two = str(cell.value)
                     if cell.value is None:
                         ws_uasys['AU' + str(cell.row)].value = 'N/A'
-                        wb_uasys.save(self.transf_file)
+                        wb_uasys.save(file_location)
                     if address_two.find('PO') == -1 and address_two != 'N/A':
                         ws_uasys['AU' + str(cell.row)].fill = y_highlight
                 except:
@@ -1772,11 +1771,11 @@ class DataFile:
                         ws_uasys['BE' + str(cell.row)].value = "N/A"
             except:
                 print(f'Error with {cell.coordinate}')
-        wb_uasys.save(self.transf_file)
+        wb_uasys.save(file_location)
         print('Done!')
 
     @classmethod
-    def reconcile_nominatim(cls, wb_uasys, ws_uasys, raw_file, null_values, gov_field_names, insti_field_names,
+    def reconcile_nominatim(cls, wb_uasys, ws_uasys, file_location, null_values, gov_field_names, insti_field_names,
                             camp_field_names):
         count = int(0)
         for row in ws_uasys.iter_rows(min_row=3, min_col=5, values_only=False):
@@ -1953,4 +1952,4 @@ class DataFile:
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
                 run += 1
             place_id.update_place_ids(id_lst)
-        wb_uasys.save(self.transf_file)
+        wb_uasys.save(file_location)
