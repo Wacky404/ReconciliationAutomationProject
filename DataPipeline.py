@@ -1,4 +1,3 @@
-# TODO: Have to remove the file from Scheduled dir after we run a successful pass on the dir and make sure output is sved to output dir.
 from DataFile import DataFile as df
 from ReconcileAI import ReconcileAI as ai
 from NominatimIntegration import NominatimIntegration as nomi
@@ -15,7 +14,7 @@ input_dir = osp.join(path_to_doc, str('Scheduled'))
 output_dir = osp.join(path_to_doc, str('PipelineOutput'))
 
 
-def configure():
+def configure() -> None:
     """ Check/Create if directory exists that we will use to store excel workbooks to run on schedule """
     try:
         for directory in [input_dir, output_dir]:
@@ -25,6 +24,20 @@ def configure():
     except FileExistsError as e:
         print(f"An exception of type {type(e).__name__} occurred. "
               f"Details: This is okay, output will save in existing {directory}.")
+
+
+def remove_fls(fls: list) -> None:
+    """ Removes scheduled workload files from input directory """
+    for f in fls:
+        try:
+            if osp.exists(f):
+                os.remove(f)
+            else:
+                continue
+
+        except (FileNotFoundError, OSError) as e:
+            print(f"An exception of type {type(e).__name__} occurred. "
+                  f"Details: {f} not found or is a directory")
 
 
 parser = argparse.ArgumentParser(
@@ -134,6 +147,11 @@ while go:
 
             print('Reconcile is done for ' + str(state[i].sheet_name) + '\n')
 
+        print('Removing jobs from Scheduled Dir...')
+        remove_fls(file_location)
+        print('... Exiting')
+        sys.exit()
+
     elif user_choice == 2:
 
         for i in range(len(state)):
@@ -160,6 +178,11 @@ while go:
 
             print('Clean is done for ' + str(state[i].sheet_name) + '\n')
 
+        print('Removing jobs from Scheduled Dir...')
+        remove_fls(file_location)
+        print('... Exiting')
+        sys.exit()
+
     elif user_choice == 3:
 
         for i in range(len(state)):
@@ -175,6 +198,11 @@ while go:
                 state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file, df.full_spellings)
 
             print('Clean is done for ' + str(state[i].sheet_name) + '\n')
+
+        print('Removing jobs from Scheduled Dir...')
+        remove_fls(file_location)
+        print('... Exiting')
+        sys.exit()
 
     elif user_choice == 4:
 
@@ -211,6 +239,11 @@ while go:
 
             print('Clean is done for ' + str(state[i].sheet_name) + '\n')
 
+        print('Removing jobs from Scheduled Dir...')
+        remove_fls(file_location)
+        print('... Exiting')
+        sys.exit()
+
     elif user_choice == 5:
 
         for i in range(len(state)):
@@ -230,18 +263,22 @@ while go:
 
             print('AI is done for ' + str(state[i].sheet_name) + '\n')
 
+        print('Removing jobs from Scheduled Dir...')
+        remove_fls(file_location)
+        print('... Exiting')
+        sys.exit()
+
     elif user_choice == 6:
 
         for i in range(len(state)):
             state[i] = df(file_location[i], worksheet[i], abrev_state[i])
             state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].raw_file,
                                          df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
+
+        print('Removing jobs from Scheduled Dir...')
+        remove_fls(file_location)
+        print('... Exiting')
+        sys.exit()
+
     else:
         print('You did not input any integer between 1 - 5, please try again\n')
-
-    exit: int = int(input('Do you want to exit: Yes --> 0 | No --> 1 '))
-
-    if exit == 1:
-        continue
-    else:
-        break
