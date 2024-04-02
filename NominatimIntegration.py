@@ -8,9 +8,9 @@ import json
 
 class NominatimIntegration:
 
-    url = f"https://nominatim.openstreetmap.org/search?"
+    url: str = "https://nominatim.openstreetmap.org/search?"
     s = requests.session()
-    abbreviations = {
+    abbreviations: dict = {
         "Alabama": "AL",
         "Alaska": "AK",
         "Arizona": "AZ",
@@ -75,7 +75,7 @@ class NominatimIntegration:
                          state=None, country='USA', postalcode=None, url=url, s=s):
         """ queries the Nominatim api in a structured format to limit results """
         arguments = locals()
-        params = {}
+        params: dict = {}
         for key, value in arguments.items():
             if value is not None and key != 'url':
                 params[key] = value
@@ -93,12 +93,15 @@ class NominatimIntegration:
                 details = dict(details[0])
             else:
                 return None
-            address = str(details['address']['house_number'] + ' ' + details['address']['road'])
-            state_in_details = str(details['address']['state'])
-            state_abbreviated = str()
+
+            address = str(details['address']['house_number'] +
+                          ' ' + details['address']['road'])
+            state_in_details: str = str(details['address']['state'])
+            state_abbreviated: str = str()
             for state in NominatimIntegration.abbreviations:
                 if state_in_details == state:
-                    state_abbreviated = str(NominatimIntegration.abbreviations[state])
+                    state_abbreviated = str(
+                        NominatimIntegration.abbreviations[state])
 
             return {
                 'ID': details['place_id'],
@@ -108,8 +111,10 @@ class NominatimIntegration:
                 'State': state_abbreviated if state_abbreviated != "" else details['address']['state'],
                 'ZipCode': details['address']['postcode']
             }
+
         except requests.exceptions.RequestException as e:
-            print(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
+            print(
+                f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
             time.sleep(r)
             return None
 

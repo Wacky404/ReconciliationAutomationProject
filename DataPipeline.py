@@ -1,13 +1,66 @@
+# TODO: debug program and implementing logging throughout the pipeline
 from DataFile import DataFile as df
 from ReconcileAI import ReconcileAI as ai
 from NominatimIntegration import NominatimIntegration as nomi
 from pathlib import Path
-import logging
+import logging.config
 import argparse
 import os.path as osp
 import os
 import sys
 import re
+
+
+logger = logging.getLogger("Pipeline")
+logging_config: dict = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {
+            "format": "%(levelname)s: %(message)s",
+        },
+        "detailed": {
+            "format": "[%(levelname)s|%(module)s|L%(lineno)d] %(asctime)s: %(message)",
+            "datefmt": "%Y-%m-%dT%H:%M:%S%z",
+        },
+    },
+    "handlers": {
+        "stderr": {
+            "class": "logging.StreamHandler",
+            "level": "WARNING",
+            "formatter": "simple",
+            "stream": "ext://sys.stderr",
+        },
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "DEBUG",
+            "formatter": "detailed",
+            "filename": "logs/Pipeline.log",
+            "maxBytes": 150_000,
+            "backupCount": 5,
+        },
+        "queue_handler": {
+            "class": "looging.handlers.QueueHandler",
+            "handlers": [
+                "stderr",
+                "file",
+            ],
+            "respect_handler_level": True,
+        },
+        "loggers": {
+            "root": {
+                "level": "DEBUG",
+                "handlers": ["queue_handler"]
+            },
+        },
+    }
+}
+logging.config.dictConfig(logging_config)
+
+queue_handler = logging.getHandlerByName("queue_handler")
+if queue_handler is not None:
+    queue_handler.listener.start()
+    atexit.register(queue_handler.listener.stop)
 
 os_home = osp.expanduser("~")
 path_to_doc = osp.join(os_home, str('Documents'))
@@ -23,8 +76,8 @@ def configure() -> None:
             print(f"Directory {directory} created")
 
         except FileExistsError as e:
-            print(f"An exception of type {type(e).__name__} occurred. "
-                  f"Details: This is okay, output will save in existing {directory}.")
+            logger.exception(f"An exception of type {type(e).__name__} occurred. "
+                             f"Details: This is okay, output will save in existing {directory}.")
 
 
 def remove_fls(fls: list) -> None:
@@ -37,13 +90,16 @@ def remove_fls(fls: list) -> None:
                 continue
 
         except (FileNotFoundError, OSError) as e:
-            print(f"An exception of type {type(e).__name__} occurred. "
-                  f"Details: {f} not found or is a directory")
+            logger.exception(f"An exception of type {type(e).__name__} occurred. "
+                             f"Details: {f} not found or is a directory")
 
 
 parser = argparse.ArgumentParser(
     prog='DataPipeline',
-    description='Data Reconciliation and Cleansing of Educational Institution data, using Excel.',
+    description="Data Reconciliation and Cleansing of Educational Institution data, using Excel."
+    " Put your jobs that you want to be completed in a given pass in the input directory, Make sure "
+    " that the file(s) is named <State>.xlsx. Once the workload is done the ouptut will be in the output directory."
+    " The input directory will be cleared.",
 )
 
 parser.add_argument(
@@ -57,6 +113,7 @@ parser.add_argument(
     '-l',
     '--log',
     action='store',
+    default=10,  # NOTSET=0, DEBUG=10, INFO=20, WARNING=30, ERROR=40, CRITICAL=50
     help='DEBUG: Detailed information for diagnosing problems | '
     'INFO: Confirmation that things are working | '
     'WARNING: Indication that something unexpected happened. Program still running | '
@@ -64,22 +121,33 @@ parser.add_argument(
     'CRITICAL: Serious error, program may be unable to continue running',
 )
 
+parser.add_argument(
+    '-t',
+    '--task',
+    action='store',
+    default=2,
+    # edit this help if you change user options
+    help='Reconcile --> 1 | Reconcile+Cleanse --> 2 | Cleanse --> 3 | Reconcile+AI+Cleanse --> 4 | AI --> 5 | Test N --> 6',
+)
+
 # creates a NameSpace of arguments that were made
 args = parser.parse_args()
 
 if args.configure:
     configure()
+    logger.info("Configuration completed.")
     sys.exit()
 
 if osp.exists(input_dir):
     pathlist: list = list(Path(input_dir).glob('**/*.xlsx'))
+    logger.info(f"Pathlist established: {pathlist}")
 else:
-    print(
+    logger.critical(
         f"Dir: {input_dir} missing/denied; please check dir and/or run --configure if needed.")
     sys.exit()
 
 if not osp.exists(output_dir):
-    print(
+    logger.critical(
         f"Dir: {output_dir} missing/denied; please check dir and/or run --configure if needed.")
     sys.exit()
 
@@ -90,7 +158,7 @@ for path in pathlist:
         print(path)
 
     except Exception as e:
-        print(f"An exception of type {type(e).__name__} occurred.")
+        logger.exception(f"An exception of type {type(e).__name__} occurred.")
 
 filenames: list = list(re.sub(".xlsx$", "", osp.basename(file))
                        for file in pathlist)
@@ -102,7 +170,7 @@ worksheet: list = []
 abrev_state: list = []
 
 amount: int = int(len(pathlist)) - 1
-print('This is the length of pathlist: ', amount)
+logger.info(f"Job amount(by index): {amount}")
 i = 0
 while i <= amount:
     try:
@@ -119,166 +187,175 @@ while i <= amount:
         abrev_state.append(input_abrev_state)
 
     except Exception as e:
-        print(f"An exception of type {type(e).__name__} occurred. "
-              f"Details: Oops... check your filenames in Scheduled and make sure they are named correctly.")
+        logger.exception(f"An exception of type {type(e).__name__} occurred. "
+                         f"Details: Oops... check your filenames in Scheduled and make sure they are named correctly.")
 
     i += 1
 
-print(state, file_location, worksheet, abrev_state, sep='\n')
+logger.debug(state, file_location, worksheet, abrev_state, sep='\n')
 
-go: bool = True
-while go:
-    print('-------------------------------------------------------------------------------------')
-    user_choice: int = int(input('| Do you want to Reconcile --> 1 \n| Reconcile+Cleanse --> 2 \n| Cleanse --> 3 '
-                                 '\n| Reconcile+AI+Cleanse --> 4 \n| AI --> 5 \n| Test N --> 6 \n'))
-    if user_choice == 1:
+print('-------------------------------------------------------------------------------------')
+if args.task == 1:
 
-        for i in range(len(state)):
-            state[i] = df(file_location[i], worksheet[i], abrev_state[i])
+    for i in range(len(state)):
+        state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
-            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.ws_data_grab,
-                                           df.ws_nces_grab)
-            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
-                                         df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
-                                              df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file,
-                                         df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
+        state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.ws_data_grab,
+                                       df.ws_nces_grab)
+        state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
+                                     df.ws_data_grab, df.ws_nces_grab)
+        state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
+                                          df.ws_data_grab, df.ws_nces_grab)
+        state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file,
+                                     df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
-            print('Reconcile is done for ' + str(state[i].sheet_name) + '\n')
+        print('Reconcile is done for ' + str(state[i].sheet_name) + '\n')
+        logger.info(f'Reconcile Done: {state[i].sheet_name}')
 
-        print('Removing jobs from Scheduled Dir...')
-        remove_fls(file_location)
-        print('... Exiting')
-        sys.exit()
+    print('Removing jobs from Scheduled Dir...')
+    remove_fls(file_location)
+    logger.info('Workload is completed.')
+    print('... Exiting')
+    sys.exit()
 
-    elif user_choice == 2:
+elif args.task == 2:
 
-        for i in range(len(state)):
-            state[i] = df(file_location[i], worksheet[i], abrev_state[i])
+    for i in range(len(state)):
+        state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
-            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.ws_data_grab,
-                                           df.ws_nces_grab)
-            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
-                                         df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
-                                              df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file,
-                                         df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
+        state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.ws_data_grab,
+                                       df.ws_nces_grab)
+        state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
+                                     df.ws_data_grab, df.ws_nces_grab)
+        state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
+                                          df.ws_data_grab, df.ws_nces_grab)
+        state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file,
+                                     df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
-            print('Reconcile is done for ' +
-                  str(state[i].sheet_name) + ' moving on to cleaning....\n')
+        print('Reconcile is done for ' +
+              str(state[i].sheet_name) + ' moving on to cleaning....\n')
+        logger.info(f'Reconcile Done: {state[i].sheet_name}')
 
-            state[i].clean_governing(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
-            state[i].clean_institution(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
-            state[i].clean_campuslocation(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
+        state[i].clean_governing(
+            state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
+        state[i].clean_institution(
+            state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
+        state[i].clean_campuslocation(
+            state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
 
-            print('Clean is done for ' + str(state[i].sheet_name) + '\n')
+        print('Clean is done for ' + str(state[i].sheet_name) + '\n')
+        logger.info(f'Clean Done: {state[i].sheet_name}')
 
-        print('Removing jobs from Scheduled Dir...')
-        remove_fls(file_location)
-        print('... Exiting')
-        sys.exit()
+    print('Removing jobs from Scheduled Dir...')
+    remove_fls(file_location)
+    logger.info('Workload is completed.')
+    print('... Exiting')
+    sys.exit()
 
-    elif user_choice == 3:
+elif args.task == 3:
 
-        for i in range(len(state)):
-            state[i] = df(file_location[i], worksheet[i], abrev_state[i])
+    for i in range(len(state)):
+        state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
-            print('Clean is starting for ' + str(state[i].sheet_name))
+        print('Clean is starting for ' + str(state[i].sheet_name))
 
-            state[i].clean_governing(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
-            state[i].clean_institution(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
-            state[i].clean_campuslocation(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
+        state[i].clean_governing(
+            state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
+        state[i].clean_institution(
+            state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
+        state[i].clean_campuslocation(
+            state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
 
-            print('Clean is done for ' + str(state[i].sheet_name) + '\n')
+        print('Clean is done for ' + str(state[i].sheet_name) + '\n')
+        logger.info(f'Clean Done: {state[i].sheet_name}')
 
-        print('Removing jobs from Scheduled Dir...')
-        remove_fls(file_location)
-        print('... Exiting')
-        sys.exit()
+    print('Removing jobs from Scheduled Dir...')
+    remove_fls(file_location)
+    logger.info('Workload is completed.')
+    print('... Exiting')
+    sys.exit()
 
-    elif user_choice == 4:
+elif args.task == 4:
 
-        for i in range(len(state)):
-            state[i] = df(file_location[i], worksheet[i], abrev_state[i])
+    for i in range(len(state)):
+        state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
-            state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.ws_data_grab,
-                                           df.ws_nces_grab)
-            state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
-                                         df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
-                                              df.ws_data_grab, df.ws_nces_grab)
-            state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file,
-                                         df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
+        state[i].reconcile_institution(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.ws_data_grab,
+                                       df.ws_nces_grab)
+        state[i].reconcile_governing(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
+                                     df.ws_data_grab, df.ws_nces_grab)
+        state[i].reconcile_campuslocation(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, state[i].abbrev,
+                                          df.ws_data_grab, df.ws_nces_grab)
+        state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file,
+                                     df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
-            print('Reconcile is done for ' +
-                  str(state[i].sheet_name) + ' moving on to AI....\n')
+        print('Reconcile is done for ' +
+              str(state[i].sheet_name) + ' moving on to AI....\n')
+        logger.info(f'Reconcile Done: {state[i].sheet_name}')
 
-            state_ai = ai(file_location[i], worksheet[i], abrev_state[i])
-            state_ai.ai_institution(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file)
-            state_ai.ai_campuslocation(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file)
+        state_ai = ai(file_location[i], worksheet[i], abrev_state[i])
+        state_ai.ai_institution(
+            state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file)
+        state_ai.ai_campuslocation(
+            state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file)
 
-            print('AI is done for ' +
-                  str(state[i].sheet_name) + ' moving on to cleaning....\n')
+        print('AI is done for ' +
+              str(state[i].sheet_name) + ' moving on to cleaning....\n')
+        logger.info(f'AI Done: {state[i].sheet_name}')
 
-            state[i].clean_governing(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
-            state[i].clean_institution(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
-            state[i].clean_campuslocation(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
+        state[i].clean_governing(
+            state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
+        state[i].clean_institution(
+            state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
+        state[i].clean_campuslocation(
+            state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file, df.full_spellings)
 
-            print('Clean is done for ' + str(state[i].sheet_name) + '\n')
+        print('Clean is done for ' + str(state[i].sheet_name) + '\n')
+        logger.info(f'Clean Done: {state[i].sheet_name}')
 
-        print('Removing jobs from Scheduled Dir...')
-        remove_fls(file_location)
-        print('... Exiting')
-        sys.exit()
+    print('Removing jobs from Scheduled Dir...')
+    remove_fls(file_location)
+    logger.info('Workload is completed.')
+    print('... Exiting')
+    sys.exit()
 
-    elif user_choice == 5:
+elif args.task == 5:
 
-        for i in range(len(state)):
-            state[i] = df(file_location[i], worksheet[i], abrev_state[i])
+    for i in range(len(state)):
+        state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
-            print('AI is starting for ' + str(state[i].sheet_name))
+        print('AI is starting for ' + str(state[i].sheet_name))
 
-            state_ai = ai(file_location[i], worksheet[i], abrev_state[i])
-            state_ai.ai_institution(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file)
+        state_ai = ai(file_location[i], worksheet[i], abrev_state[i])
+        state_ai.ai_institution(
+            state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file)
 
-            print('AI is done for ' +
-                  str(state[i].sheet_name) + ' institutions\n')
+        print('AI is done for ' +
+              str(state[i].sheet_name) + ' institutions\n')
 
-            state_ai.ai_campuslocation(
-                state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file)
+        state_ai.ai_campuslocation(
+            state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file)
 
-            print('AI is done for ' + str(state[i].sheet_name) + '\n')
+        print('AI is done for ' + str(state[i].sheet_name) + '\n')
+        logger.info(f'AI Done: {state[i].sheet_name}')
 
-        print('Removing jobs from Scheduled Dir...')
-        remove_fls(file_location)
-        print('... Exiting')
-        sys.exit()
+    print('Removing jobs from Scheduled Dir...')
+    remove_fls(file_location)
+    logger.info('Workload is completed.')
+    print('... Exiting')
+    sys.exit()
 
-    elif user_choice == 6:
+elif args.task == 6:
 
-        for i in range(len(state)):
-            state[i] = df(file_location[i], worksheet[i], abrev_state[i])
-            state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file,
-                                         df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
+    for i in range(len(state)):
+        state[i] = df(file_location[i], worksheet[i], abrev_state[i])
+        state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file,
+                                     df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
 
-        print('Removing jobs from Scheduled Dir...')
-        remove_fls(file_location)
-        print('... Exiting')
-        sys.exit()
+    logger.info(f'Reconcile Nominatim Done: {state[i].sheet_name}')
 
-    else:
-        print('You did not input any integer between 1 - 5, please try again\n')
+    print('Removing jobs from Scheduled Dir...')
+    remove_fls(file_location)
+    logger.info('Workload is completed.')
+    print('... Exiting')
+    sys.exit()
