@@ -10,7 +10,7 @@ import os
 import sys
 import re
 
-
+# can't configure queue_handler easily as of 3.11 python only available on 3.12
 logger = logging.getLogger("Pipeline")
 logging_config: dict = {
     "version": 1,
@@ -36,31 +36,21 @@ logging_config: dict = {
             "level": "DEBUG",
             "formatter": "detailed",
             "filename": "logs/Pipeline.log",
-            "maxBytes": 150_000,
+            "maxBytes": 150000,
             "backupCount": 5,
         },
-        "queue_handler": {
-            "class": "looging.handlers.QueueHandler",
+    },
+    "loggers": {
+        "root": {
+            "level": "DEBUG",
             "handlers": [
                 "stderr",
                 "file",
             ],
-            "respect_handler_level": True,
         },
-        "loggers": {
-            "root": {
-                "level": "DEBUG",
-                "handlers": ["queue_handler"]
-            },
-        },
-    }
+    },
 }
 logging.config.dictConfig(logging_config)
-
-queue_handler = logging.getHandlerByName("queue_handler")
-if queue_handler is not None:
-    queue_handler.listener.start()
-    atexit.register(queue_handler.listener.stop)
 
 os_home = osp.expanduser("~")
 path_to_doc = osp.join(os_home, str('Documents'))
