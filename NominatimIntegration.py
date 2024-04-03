@@ -1,5 +1,5 @@
 from pprint import pprint
-from DataPipeline import logger
+from log_util import logger
 import asyncio
 import requests
 import random

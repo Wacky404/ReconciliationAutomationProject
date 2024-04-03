@@ -1,5 +1,6 @@
 from openpyxl import load_workbook
 from DataFile import DataFile
+from log_util import logger
 import openai
 import time
 import os.path as osp
