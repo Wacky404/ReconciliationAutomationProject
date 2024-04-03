@@ -2,6 +2,7 @@
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from difflib import SequenceMatcher
+from DataPipeline import logger
 from NominatimIntegration import NominatimIntegration
 import place_id
 import os.path as osp
@@ -14,7 +15,7 @@ class DataFile:
     wb_nces_grab = load_workbook("Data_3-14-2023---623.xlsx")
     ws_data_grab = wb_data_grab["InstituteCampuses"]
     ws_nces_grab = wb_nces_grab["Data_3-14-2023---623"]
-    full_spellings = {
+    full_spellings: dict = {
         'rd': 'road',
         'rd.': 'road',
         'ave': 'avenue',
@@ -59,18 +60,18 @@ class DataFile:
         'u.s': 'united states'
     }
 
-    gov_field_names = {
+    gov_field_names: dict = {
         'F': 'gov_address_line_1',
         'I': 'gov_municipality',
         'L': 'gov_postal_code',
     }
-    insti_field_names = {
+    insti_field_names: dict = {
         'U': 'primary_institution_name',
         'V': 'inst_address_line_1',
         'Y': 'inst_municipality',
         'AB': 'inst_postal_code',
     }
-    camp_field_names = {
+    camp_field_names: dict = {
         'AP': 'camp_official_institution_name',
         'AQ': 'camp_campus_name',
         'AR': 'camp_location_site',
@@ -78,7 +79,7 @@ class DataFile:
         'AV': 'camp_municipality',
         'AY': 'camp_postal_code',
     }
-    null_values = ('NONE', 'None', 'NULL', 'Null', '')
+    null_values: tuple = ('NONE', 'None', 'NULL', 'Null', '')
 
     def __init__(self, raw_file, sheet_name, abbrev):
         self.raw_file = raw_file
@@ -93,7 +94,7 @@ class DataFile:
         self.ws_uasys = self.wb_uasys[sheet_name]
 
     @staticmethod
-    def raw_file_check(raw_file):
+    def raw_file_check(raw_file: str) -> str:
         wrong_input = raw_file.find(".xlsx")
         if wrong_input == -1:
             print("Be sure to add .xlsx to end of file location!")
@@ -101,11 +102,11 @@ class DataFile:
             return raw_file
 
     @staticmethod
-    def has_numbers(input_string: str):
+    def has_numbers(input_string: str) -> bool:
         return any(char.isdigit() for char in input_string)
 
     @classmethod
-    def _split_address(cls, ws_uasys, address_original, cache_row, addr_line1_col, addr_line2_col):
+    def _split_address(cls, ws_uasys, address_original, cache_row, addr_line1_col, addr_line2_col) -> None:
         split_address_words = (
             'Ste',
             'Ste.',
@@ -121,6 +122,7 @@ class DataFile:
         address = address_original
         for index in range(len(address)):
             word = address[index]
+
             for match in split_address_words:
                 if word == match:
                     address_line_2 = str(' '.join(address[index:len(address)]))
@@ -131,6 +133,7 @@ class DataFile:
                     if phrase_removal != -1:
                         ws_uasys[str(addr_line1_col) + str(cache_row)
                                  ].value = address_line_1.strip(address_line_2)
+
             for other in secondary_split_address_words:
                 if word == other:
                     floor_num = index - 1
@@ -145,7 +148,7 @@ class DataFile:
                                  ].value = address_line_1.strip(address_line_2)
 
     @classmethod
-    def reconcile_institution(cls, wb_uasys, ws_uasys, file_location, ws_data_grab, ws_nces_grab):
+    def reconcile_institution(cls, wb_uasys, ws_uasys, file_location, ws_data_grab, ws_nces_grab) -> None:
         # Inputs Autogen in field cells
         for cell in ws_uasys['Q']:
             if cell.row >= 3:
@@ -153,7 +156,7 @@ class DataFile:
                     if cell.value is None:
                         ws_uasys['Q' + str(cell.row)].value = "AutoGen"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         # Get inst_po_box_line for primary_institution_name from LocationName -> address
         for cell in ws_uasys['U']:
             if cell.row >= 3:
@@ -161,8 +164,8 @@ class DataFile:
                 cell_prev = int(cell.row) - 1
                 try:
                     if cell_prev != 0 and primary_institution_name != ws_uasys['U' + str(cell_prev)].value.upper():
-                        print("----------------------------------")
-                        print(primary_institution_name)
+                        logger.debug(primary_institution_name)
+
                         for grab in ws_data_grab['D']:
                             location_name = str(grab.value)
                             if location_name.upper() == primary_institution_name:
@@ -176,11 +179,12 @@ class DataFile:
                                         number_pobox = found.group(1)
                                         inst_po_box_line = str(
                                             'PO Box' + str(number_pobox))
-                                        print('Found: ' + inst_po_box_line)
+                                        logger.debug(
+                                            'Found: ' + inst_po_box_line)
                                         ws_uasys['X' + str(cell.row)
                                                  ].value = inst_po_box_line
                 except Exception as e:
-                    print(
+                    logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # If INST_COUNTRY_CODE is blank then assign USA
         for cell in ws_uasys['AA']:
@@ -189,7 +193,7 @@ class DataFile:
                     if cell.value is None:
                         ws_uasys['AA' + str(cell.row)].value = "USA"
                 except Exception as e:
-                    print(
+                    logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Move/delete substrings from inst_address_line_1 and moving them into respective column row
         substrings = {
@@ -207,8 +211,10 @@ class DataFile:
         for cell in ws_uasys['V']:
             if cell.row >= 3:
                 governing_address = str(cell.value).split()
+
                 for index in range(len(governing_address)):
                     word = governing_address[index]
+
                     for look in substrings:
                         if word == look:
                             inst_address_line_1 = str(
@@ -247,7 +253,7 @@ class DataFile:
                     if cell.value is None:
                         ws_uasys['W' + str(cell.row)].value = "N/A"
                 except Exception as e:
-                    print(
+                    logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Check to see if institution is inactive/closed according to NCES database
         for cell in ws_uasys['U']:
@@ -256,6 +262,7 @@ class DataFile:
                 cell_prev = int(cell.row) - 1
                 try:
                     if cell_prev != 0 and organization_name != ws_uasys['U' + str(cell_prev)].value.upper():
+
                         for look in ws_nces_grab['B']:
                             nces_institution = str(look.value)
                             if nces_institution.upper() == organization_name.upper():
@@ -267,7 +274,7 @@ class DataFile:
                                              ].value = institution_closed
                                     ws_uasys['AH' + str(cell.row)].value = 'Y'
                 except Exception as e:
-                    print(
+                    logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # if INST_RECORD_SOURCE is blank then assign N/A
         for cell in ws_uasys['AJ']:
@@ -276,7 +283,7 @@ class DataFile:
                     if cell.value is None:
                         ws_uasys['AJ' + str(cell.row)].value = "N/A"
                 except Exception as e:
-                    print(
+                    logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         wb_uasys.save(file_location)
 
@@ -288,28 +295,28 @@ class DataFile:
                     if cell.value is None:
                         ws_uasys['R' + str(cell.row)].value = "NULL"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['S']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['S' + str(cell.row)].value = "NULL"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['T']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['T' + str(cell.row)].value = "NULL"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AC']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['AC' + str(cell.row)].value = "NULL"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         yellow = 'FFFF00'
         red = 'FF6666'
         y_highlight = PatternFill(patternType='solid', fgColor=yellow)
@@ -320,7 +327,7 @@ class DataFile:
                     if cell.value is None:
                         ws_uasys['Q' + str(cell.row)].value = 'AutoGen'
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['R']:
             try:
                 if cell.row >= 3:
@@ -334,7 +341,7 @@ class DataFile:
                     if not gov_id_iped.isnumeric():
                         ws_uasys['T' + str(cell.row)].fill = r_highlight
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['U']:
             if cell.row >= 3:
                 try:
@@ -344,7 +351,7 @@ class DataFile:
                         ws_uasys['U' + str(cell.row)
                                  ].value = str(cell.value).upper()
                 except:
-                    print(f'Error with {cell.coordinaate}')
+                    logger.exception(f'Error with {cell.coordinaate}')
         for cell in ws_uasys['V']:
             if cell.row >= 3:
                 try:
@@ -355,7 +362,9 @@ class DataFile:
                     gov_address = str(
                         ws_uasys['V' + str(cell.row)].value).lower()
                     sep_address = gov_address.split()
+
                     for key in full_spellings:
+
                         for index in range(len(sep_address)):
                             word = sep_address[index]
                             if word == key:
@@ -364,7 +373,7 @@ class DataFile:
                                 ws_uasys['V' + str(cell.row)
                                          ].value = gov_address.upper()
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['W']:
             if cell.row >= 3:
                 try:
@@ -374,7 +383,7 @@ class DataFile:
                     elif address_one.find('PO') != -1:
                         ws_uasys['W' + str(cell.row)].fill = y_highlight
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['X']:
             if cell.row >= 3:
                 try:
@@ -385,7 +394,7 @@ class DataFile:
                     elif address_two.find('PO') == -1:
                         ws_uasys['X' + str(cell.row)].fill = y_highlight
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['Y']:
             if cell.row >= 3:
                 try:
@@ -395,7 +404,7 @@ class DataFile:
                         ws_uasys['Y' + str(cell.row)
                                  ].value = str(cell.value).upper()
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['Z']:
             try:
                 if cell.row >= 3:
@@ -403,56 +412,56 @@ class DataFile:
                     if len(region) != 2:
                         ws_uasys['Z' + str(cell.row)].fill = r_highlight
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AA']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['AA' + str(cell.row)].value = 'USA'
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AB']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['AB' + str(cell.row)].fill = r_highlight
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AF']:
             if cell.row >= 3:
                 try:
                     if cell.value == 'Manually Find' or cell.value is None:
                         ws_uasys['AF' + str(cell.row)].fill = r_highlight
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AG']:
             if cell.row >= 3:
                 try:
                     if cell.value == 'Manually Find' or cell.value is None:
                         ws_uasys['AG' + str(cell.row)].fill = r_highlight
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AH']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['AH' + str(cell.row)].value = "N"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AI']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['AI' + str(cell.row)].value = "N/A"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AJ']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['AJ' + str(cell.row)].value = "N/A"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         wb_uasys.save(file_location)
 
     @classmethod
@@ -464,7 +473,7 @@ class DataFile:
                     if cell.value is None:
                         ws_uasys['A' + str(cell.row)].value = "AutoGen"
                 except Exception as e:
-                    print(
+                    logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Get primary institution name and compare it against cells in additional sites location name,
         # if match: access Parent
@@ -472,8 +481,8 @@ class DataFile:
         for cell in ws_uasys['U']:
             if cell.row >= 3:
                 institute_name = str(cell.value)
-                print("----------------------------------")
-                print(institute_name)
+                logger.debug(institute_name)
+
                 for grab in ws_data_grab['D']:
                     location_name = str(grab.value)
                     if location_name.upper() == institute_name.upper():
@@ -484,14 +493,13 @@ class DataFile:
                                      ].value = institute_name
                         else:
                             ws_uasys['E' + str(cell.row)].value = parent_name
-                        print('Placed in governing: ' +
-                              str(ws_uasys['E' + str(cell.row)].value))
-                        print("----------------------------------")
-        print("Populating associated fields.....hold on.....")
+                        logger.debug('Placed in governing: ' +
+                                     str(ws_uasys['E' + str(cell.row)].value))
         # Get Governing_Organization_Name's DAPIP, OPE, and IPEDSID IDs from data_grab
         for cell in ws_uasys['E']:
             if cell.row >= 3:
                 institution_govern = str(cell.value)
+
                 for grab in ws_data_grab['E']:
                     location_name = str(grab.value)
                     if location_name.upper() == institution_govern.upper():
@@ -503,6 +511,7 @@ class DataFile:
                         if GOV_DAPID == 'NULL':
                             govern_zipcode = str(
                                 ws_uasys['L' + str(cell.row)].value)
+
                             for look in ws_nces_grab['B']:
                                 match_institution = str(look.value)
                                 nces_zipcode = str(
@@ -528,6 +537,7 @@ class DataFile:
         for cell in ws_uasys['B']:
             if cell.row >= 3:
                 institution_govern = str(cell.value)
+
                 for grab in ws_data_grab['A']:
                     location_name = str(grab.value)
                     if location_name == institution_govern:
@@ -675,7 +685,7 @@ class DataFile:
                                          ].value = GOV_POSTAL_CODE
 
                         except Exception as e:
-                            print(
+                            logger.exception(
                                 f"An exception of type {type(e).__name__} occurred, NULL assigned. Details: {str(e)}")
                             ws_uasys['F' + str(cell.row)].value = 'NULL'
                             ws_uasys['G' + str(cell.row)].value = 'NULL'
@@ -689,7 +699,7 @@ class DataFile:
                     if cell.value is None:
                         ws_uasys['J' + str(cell.row)].value = abbrev.upper()
                 except Exception as e:
-                    print(
+                    logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # If GOV_COUNTRY_CODE is blank then assign USA
         for cell in ws_uasys['K']:
@@ -698,12 +708,13 @@ class DataFile:
                     if cell.value is None:
                         ws_uasys['K' + str(cell.row)].value = "USA"
                 except Exception as e:
-                    print(
+                    logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Get GOV_PhoneNumberFull
         for cell in ws_uasys['E']:
             if cell.row >= 3:
                 institution_govern = str(cell.value)
+
                 for grab in ws_data_grab['D']:
                     location_name = str(grab.value)
                     if location_name.upper() == institution_govern.upper():
@@ -711,8 +722,9 @@ class DataFile:
                             ws_data_grab['I' + str(grab.row)].value)
                         ws_uasys['M' + str(cell.row)].value = phoneNumber_grab
                         if phoneNumber_grab is None:
-                            print(
+                            logger.debug(
                                 'No phone number from Accreditation Database : Searching')
+
                             for look in ws_nces_grab['B']:
                                 nces_institution = str(look.value)
                                 if nces_institution.upper() == institution_govern.upper():
@@ -720,13 +732,15 @@ class DataFile:
                                         ws_nces_grab['L' + str(grab.row)].value)
                                     ws_uasys['M' + str(cell.row)
                                              ].value = phoneNumber_grab
-                                    print('Found phone number in NCES Database')
+                                    logger.debug(
+                                        'Found phone number in NCES Database')
                                 else:
-                                    print('No phone number found')
+                                    logger.debug('No phone number found')
         # Check to see if GOV_ORG is inactive/closed according to NCES database
         for cell in ws_uasys['E']:
             if cell.row >= 3:
                 institution_govern = str(cell.value)
+
                 for look in ws_nces_grab['B']:
                     nces_institution = str(look.value)
                     if nces_institution.upper() == institution_govern.upper():
@@ -743,7 +757,7 @@ class DataFile:
                     if cell.value is None:
                         ws_uasys['P' + str(cell.row)].value = "N/A"
                 except Exception as e:
-                    print(
+                    logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # if not in data_grab then search nces_grab database
         for cell in ws_uasys['E']:
@@ -752,6 +766,7 @@ class DataFile:
                     if cell.value is None:
                         search_institution = ws_uasys['U' +
                                                       str(cell.row)].value
+
                         for look in ws_nces_grab['B']:
                             nces_institution = str(look.value)
                             if nces_institution.upper() == search_institution.upper():
@@ -788,7 +803,7 @@ class DataFile:
                                 ws_uasys['M' + str(cell.row)
                                          ].value = GOV_PhoneNumberFull
                 except Exception as e:
-                    print(
+                    logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Move/delete substrings from GOV_ADDRESS_LINE_1 and moving them into respective column row
         substrings = {
@@ -805,8 +820,10 @@ class DataFile:
         for cell in ws_uasys['F']:
             if cell.row >= 3:
                 governing_address = str(cell.value).split()
+
                 for index in range(len(governing_address)):
                     word = governing_address[index]
+
                     for look in substrings:
                         if word == look:
                             GOV_ADDRESS_LINE_2 = str(
@@ -841,6 +858,7 @@ class DataFile:
         for cell in ws_uasys['L']:
             if cell.row >= 3:
                 postal_code = str(cell.value).split()
+
                 for index in range(len(postal_code)):
                     word = postal_code[index]
                     if not word.isalpha():
@@ -871,7 +889,7 @@ class DataFile:
                                          ].value = GOV_ADDRESS_LINE_1
                                 ws_uasys['L' + str(cell.row)].value = ''
                             except Exception as e:
-                                print(
+                                logger.exception(
                                     f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
                         else:
                             GOV_STATE_REGION_SHORT = str(postal_code[index])
@@ -886,6 +904,7 @@ class DataFile:
                 cell_prev = int(cell.row) - 1
                 try:
                     if cell_prev != 0 and institution_govern.upper() != ws_uasys['E' + str(cell_prev)].value.upper():
+
                         for look in ws_nces_grab['B']:
                             nces_institution = str(look.value)
                             if nces_institution.upper() == institution_govern.upper():
@@ -896,7 +915,7 @@ class DataFile:
                                     ws_uasys['AI' + str(cell.row)
                                              ].value = institution_closed
                 except Exception as e:
-                    print(
+                    logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         for cell in ws_uasys['F']:
             if cell.row >= 3:
@@ -933,28 +952,28 @@ class DataFile:
                     if cell.value is None:
                         ws_uasys['B' + str(cell.row)].value = "NULL"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['C']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['C' + str(cell.row)].value = "NULL"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['D']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['D' + str(cell.row)].value = "NULL"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['M']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['M' + str(cell.row)].value = "NULL"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         yellow = 'FFFF00'
         red = 'FF6666'
         y_highlight = PatternFill(patternType='solid', fgColor=yellow)
@@ -966,7 +985,7 @@ class DataFile:
                     if org_id != 'AutoGen':
                         ws_uasys['A' + str(cell.row)].value = 'AutoGen'
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['B']:
             if cell.row >= 3:
                 try:
@@ -980,7 +999,7 @@ class DataFile:
                     if not gov_id_iped.isnumeric():
                         ws_uasys['D' + str(cell.row)].fill = r_highlight
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['E']:
             if cell.row >= 3:
                 try:
@@ -990,7 +1009,7 @@ class DataFile:
                         ws_uasys['E' + str(cell.row)
                                  ].value = str(cell.value).upper()
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['F']:
             if cell.row >= 3:
                 try:
@@ -1002,7 +1021,9 @@ class DataFile:
                     gov_address = str(
                         ws_uasys['F' + str(cell.row)].value).lower()
                     sep_address = gov_address.split()
+
                     for key in full_spellings:
+
                         for index in range(len(sep_address)):
                             word = sep_address[index]
                             if word == key:
@@ -1011,14 +1032,14 @@ class DataFile:
                                 ws_uasys['F' + str(cell.row)
                                          ].value = gov_address.upper()
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['G']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['G' + str(cell.row)].value = "N/A"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['H']:
             if cell.row >= 3:
                 try:
@@ -1027,7 +1048,7 @@ class DataFile:
                     elif cell.value == 'None':
                         ws_uasys['H' + str(cell.row)].value = "N/A"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['I']:
             if cell.row >= 3:
                 try:
@@ -1037,7 +1058,7 @@ class DataFile:
                         ws_uasys['I' + str(cell.row)
                                  ].value = str(cell.value).upper()
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['J']:
             try:
                 if cell.row >= 3:
@@ -1045,42 +1066,42 @@ class DataFile:
                     if len(region) != 2:
                         ws_uasys['J' + str(cell.row)].fill = r_highlight
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['K']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['K' + str(cell.row)].value = 'USA'
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['L']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['L' + str(cell.row)].fill = r_highlight
                 except:
-                    print('Error with cell')
+                    logger.exception('Error with cell')
         for cell in ws_uasys['N']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['N' + str(cell.row)].value = "N"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['O']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['O' + str(cell.row)].value = "N/A"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['P']:
             if cell.row >= 3:
                 try:
                     if cell.value is None:
                         ws_uasys['P' + str(cell.row)].value = "N/A"
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         wb_uasys.save(file_location)
 
     @classmethod
@@ -1092,7 +1113,7 @@ class DataFile:
                     if cell.value is None:
                         ws_uasys['AK' + str(cell.row)].value = "AutoGen"
             except Exception as e:
-                print(
+                logger.exception(
                     f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Grabbing the missing cells in CAMP_OFFICIAL_INSTITUTION_NAME from PRIMARY_INSTITUTION_NAME
         for cell in ws_uasys['AP']:
@@ -1104,7 +1125,7 @@ class DataFile:
                         ws_uasys['AP' + str(cell.row)
                                  ].value = CAMP_OFFICIAL_INSTITUTION_NAME.upper()
             except AttributeError as e:
-                print(
+                logger.exception(
                     f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # for column AQ find the additional location for column AP and address for the location
         for cell in ws_uasys['AQ']:
@@ -1112,6 +1133,7 @@ class DataFile:
                 try:
                     lookup_institution = ws_uasys['AP' + str(cell.row)].value
                     used_cell_ar = False
+
                     for grab in ws_data_grab['E']:
                         if grab.value.upper == lookup_institution.upper:
                             additional_location = ws_data_grab['D' +
@@ -1145,10 +1167,9 @@ class DataFile:
                                 ws_uasys['AR' + str(cell.row)
                                          ].value = str(lookup_institution).upper
                 except Exception as e:
-                    print(
+                    logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Get CAMP_CAMPUS_NAME CAMP_OPED_ID and CAMP_IPED_ID from LocationName OpeId and IpedsUnitIds
-        print("----------------------------------")
         for cell in ws_uasys['AQ']:
             try:
                 if cell.row >= 3:
@@ -1156,7 +1177,8 @@ class DataFile:
                         str(ws_uasys['AR' + str(cell.row)].value)
                     organization_address = str(
                         ws_uasys['AS' + str(cell.row)].value)
-                    print(f"Populating {organization_name} fields.....")
+                    logger.debug(f"Populating {organization_name} fields.....")
+
                     for grab in ws_data_grab['D']:
                         location_name = str(grab.value)
                         location_address = str(
@@ -1174,7 +1196,7 @@ class DataFile:
                             ws_uasys['AM' + str(cell.row)].value = CAMP_OPED_ID
                             ws_uasys['AN' + str(cell.row)].value = CAMP_IPED_ID
             except Exception as e:
-                print(
+                logger.exception(
                     f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # for any CAMP_CAMPUS_NAME ids that aren't populated by accred, find data in institution
         for cell in ws_uasys['AQ']:
@@ -1197,7 +1219,7 @@ class DataFile:
                             ws_uasys['AM' + str(cell.row)].value = pop_opeid
                             ws_uasys['AN' + str(cell.row)].value = pop_ipedid
                     except Exception as e:
-                        print(
+                        logger.exception(
                             f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # If Campus dapid, opeid, ipedid is none then assign the cell NULL
         for cell in ws_uasys['AL']:
@@ -1212,12 +1234,13 @@ class DataFile:
                     if ipedid is None:
                         ws_uasys['AN' + str(cell.row)].value = "NULL"
                 except Exception as e:
-                    print(
+                    logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Get CAMP_PO_BOX_LINE and CAMP_PhoneNumberFull from CAMP_CAMPUS_NAME against LocationName fields
         for cell in ws_uasys['AQ']:
             if cell.row >= 3:
                 organization_name = str(cell.value)
+
                 for grab in ws_data_grab['D']:
                     location_name = str(grab.value)
                     if location_name.upper() == organization_name.upper():
@@ -1345,7 +1368,7 @@ class DataFile:
                                 ws_uasys['AY' + str(cell.row)
                                          ].value = CAMP_POSTAL_CODE
                         except Exception as e:
-                            print(
+                            logger.exception(
                                 f"An exception of type {type(e).__name__} occurred, NULL assigned. Details: {str(e)}")
                             ws_uasys['AT' + str(cell.row)].value = 'NULL'
                             ws_uasys['AU' + str(cell.row)].value = 'NULL'
@@ -1389,8 +1412,10 @@ class DataFile:
         for cell in ws_uasys['AS']:
             if cell.row >= 3:
                 governing_address = str(cell.value).split()
+
                 for index in range(len(governing_address)):
                     word = governing_address[index]
+
                     for look in substrings:
                         if word == look:
                             GOV_ADDRESS_LINE_2 = str(
@@ -1438,7 +1463,7 @@ class DataFile:
                             ws_uasys['AT' + str(cell.row)].value = 'N/A'
                             ws_uasys['AT2'].value = 'CAMP_ADDRESS_LINE_2'
                         except Exception as e:
-                            print(
+                            logger.exception(
                                 f"An exception of type {type(e).__name__} occurred, NULL assigned. Details: {str(e)}")
                     else:
                         CAMP_POSTAL_CODE = ws_uasys['AV' + str(cell.row)].value
@@ -1479,12 +1504,13 @@ class DataFile:
                         ws_uasys['AY' + str(cell.row)].value = str(
                             cell.value).strip(STATE_REGION_SHORT)
                 except Exception as e:
-                    print(
+                    logger.exception(
                         f"An exception of type {type(e).__name__} occurred, NULL assigned. Details: {str(e)}")
         # Check to see if campus is inactive/closed according to NCES database
         for cell in ws_uasys['AQ']:
             if cell.row >= 3:
                 organization_name = str(cell.value)
+
                 for look in ws_nces_grab['B']:
                     nces_institution = str(look.value)
                     if nces_institution.upper() == organization_name.upper():
@@ -1502,7 +1528,7 @@ class DataFile:
                     if cell.value is None:
                         ws_uasys['BE' + str(cell.row)].value = "N/A"
                 except Exception as e:
-                    print(
+                    logger.exception(
                         f"An exception of type {type(e).__name__} occurred, NULL assigned. Details: {str(e)}")
         wb_uasys.save(file_location)
 
@@ -1514,35 +1540,35 @@ class DataFile:
                     if cell.value is None:
                         ws_uasys['AK' + str(cell.row)].value = 'AutoGen'
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AL']:
             try:
                 if cell.row >= 3:
                     if cell.value is None:
                         ws_uasys['AL' + str(cell.row)].value = "NULL"
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AM']:
             try:
                 if cell.row >= 3:
                     if cell.value is None:
                         ws_uasys['AM' + str(cell.row)].value = "NULL"
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AN']:
             try:
                 if cell.row >= 3:
                     if cell.value is None:
                         ws_uasys['AN' + str(cell.row)].value = "NULL"
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AZ']:
             try:
                 if cell.row >= 3:
                     if cell.value is None:
                         ws_uasys['AZ' + str(cell.row)].value = "NULL"
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         yellow = 'FFFF00'
         red = 'FF6666'
         y_highlight = PatternFill(patternType='solid', fgColor=yellow)
@@ -1560,7 +1586,7 @@ class DataFile:
                     if not gov_id_iped.isnumeric():
                         ws_uasys['AN' + str(cell.row)].fill = r_highlight
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AP']:
             try:
                 if cell.row >= 3:
@@ -1575,7 +1601,7 @@ class DataFile:
                     if cell.value is None:
                         ws_uasys['AP' + str(cell.row)].fill = r_highlight
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         wb_uasys.save(file_location)
         campus_no = (
             "regional",
@@ -1603,7 +1629,9 @@ class DataFile:
                         ws_uasys['AR' + str(cell.row)].value = "N/A"
                     sep_campus_name = campus_name.split()
                     wb_uasys.save(file_location)
+
                     for match in campus_no:
+
                         for index in range(len(sep_campus_name)):
                             word = sep_campus_name[index]
                             if word == match:
@@ -1618,6 +1646,7 @@ class DataFile:
                         official_name = re.sub(',', ' , ', official_name)
                         sep_official_name = official_name.split()
                         index_list = []
+
                         for index in range(len(sep_official_name)):
                             remove = sep_official_name[index].lower()
                             word = sep_campus_name[index].lower()
@@ -1628,6 +1657,7 @@ class DataFile:
                                 break
                             else:
                                 break
+
                         for index in range(len(sep_campus_name)):
                             remove = sep_campus_name[index]
                             if remove == '-' or remove == ',':
@@ -1637,6 +1667,7 @@ class DataFile:
                         check_campus = str(sep_campus_name[0])
                         check_official = str(sep_campus_name[0])
                         if remove_element > 0 and check_campus == check_official:
+
                             i = 1
                             while i <= remove_element:
                                 sep_campus_name.pop(0)
@@ -1653,7 +1684,7 @@ class DataFile:
                             ws_uasys['AQ' + str(cell.row)
                                      ].value = campus.upper()
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         wb_uasys.save(file_location)
         for cell in ws_uasys['AR']:
             try:
@@ -1663,7 +1694,7 @@ class DataFile:
                     elif cell.value != "N/A":
                         ws_uasys['AQ' + str(cell.row)].value = "N/A"
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AS']:
             try:
                 if cell.row >= 3:
@@ -1674,7 +1705,9 @@ class DataFile:
                     gov_address = str(
                         ws_uasys['AS' + str(cell.row)].value).lower()
                     sep_address = gov_address.split()
+
                     for key in full_spellings:
+
                         for index in range(len(sep_address)):
                             word = sep_address[index]
                             if word == key:
@@ -1683,7 +1716,7 @@ class DataFile:
                                 ws_uasys['AS' + str(cell.row)
                                          ].value = gov_address.upper()
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AT']:
             try:
                 if cell.row >= 3:
@@ -1693,7 +1726,7 @@ class DataFile:
                     if address_one.find('PO') != -1:
                         ws_uasys['AT' + str(cell.row)].fill = y_highlight
             except:
-                print('Error with cell')
+                logger.exception('Error with cell')
         for cell in ws_uasys['AU']:
             if cell.row >= 3:
                 try:
@@ -1704,7 +1737,7 @@ class DataFile:
                     if address_two.find('PO') == -1 and address_two != 'N/A':
                         ws_uasys['AU' + str(cell.row)].fill = y_highlight
                 except:
-                    print('Error with cell')
+                    logger.exception('Error with cell')
         for cell in ws_uasys['AV']:
             try:
                 if cell.row >= 3:
@@ -1713,7 +1746,7 @@ class DataFile:
                     if cell.value is None:
                         ws_uasys['AV' + str(cell.row)].fill = r_highlight
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AW']:
             try:
                 if cell.row >= 3:
@@ -1721,75 +1754,77 @@ class DataFile:
                     if len(region) != 2:
                         ws_uasys['AW' + str(cell.row)].fill = r_highlight
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AX']:
             try:
                 if cell.row >= 3:
                     if cell.value is None:
                         ws_uasys['AX' + str(cell.row)].value = 'USA'
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['AY']:
             try:
                 if cell.row >= 3:
                     if cell.value is None:
                         ws_uasys['AY' + str(cell.row)].fill = r_highlight
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['BA']:
             if cell.row >= 3:
                 try:
                     if cell.value == 'Manually Find' or cell.value is None:
                         ws_uasys['BA' + str(cell.row)].fill = y_highlight
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['BB']:
             if cell.row >= 3:
                 try:
                     if cell.value == 'Manually Find' or cell.value is None:
                         ws_uasys['BB' + str(cell.row)].fill = y_highlight
                 except:
-                    print(f'Error with {cell.coordinate}')
+                    logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['BC']:
             try:
                 if cell.row >= 3:
                     if cell.value is None:
                         ws_uasys['BC' + str(cell.row)].value = "N"
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['BD']:
             try:
                 if cell.row >= 3:
                     if cell.value is None:
                         ws_uasys['BD' + str(cell.row)].value = "N/A"
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         for cell in ws_uasys['BE']:
             try:
                 if cell.row >= 3:
                     if cell.value is None:
                         ws_uasys['BE' + str(cell.row)].value = "N/A"
             except:
-                print(f'Error with {cell.coordinate}')
+                logger.exception(f'Error with {cell.coordinate}')
         wb_uasys.save(file_location)
-        print('Done!')
 
     @classmethod
     def reconcile_nominatim(cls, wb_uasys, ws_uasys, file_location, null_values, gov_field_names, insti_field_names,
                             camp_field_names):
-        count = int(0)
+        count: int = int(0)
         for row in ws_uasys.iter_rows(min_row=3, min_col=5, values_only=False):
             count += 1
-            cache = []
-            id_lst = []
+            cache: list = []
+            id_lst: list = []
+
             # Creating cache of nested lists that will store column letter and n integer
             for cell in row:
-                temp = []
-                cell_content = str(cell.value)
+                temp: list = []
+                cell_content: str = str(cell.value)
+
                 for value in null_values:
                     if cell_content.lower() == value.lower():
-                        column = str()
-                        numbers = str()
+                        column: str = str()
+                        numbers: str = str()
+
                         for char in str(cell.coordinate):
                             if char.isalpha():
                                 column += char
@@ -1801,16 +1836,17 @@ class DataFile:
             # Here is where I will do API requests based on fields that are null_values
             # Skips are what keep track of API call per row for each section of data: reset to false each iteration
             # recursive by row
-            skip_gov = bool(False)
-            skip_insti = bool(False)
-            skip_camp = bool(False)
-            run = int(0)
-            cache_index = len(cache) - 1
+            skip_gov: bool = bool(False)
+            skip_insti: bool = bool(False)
+            skip_camp: bool = bool(False)
+            run: int = int(0)
+            cache_index: int = len(cache) - 1
             while run <= cache_index:
                 cache_column = cache[run][0]
                 cache_row = cache[run][1]
                 try:
                     if not skip_gov:
+
                         for key in gov_field_names:
                             if cache_column == key:
                                 # Assigning variable to call query
@@ -1848,12 +1884,13 @@ class DataFile:
                                         id_lst.append(
                                             [missing_data['ID'], missing_data['Name']])
                                 except Exception as e:
-                                    print(
+                                    logger.exception(
                                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
 
                                 skip_gov = True
                                 break
                     if not skip_insti:
+
                         for key in insti_field_names:
                             if cache_column == key:
                                 # Assigning variable to call query:
@@ -1891,12 +1928,13 @@ class DataFile:
                                         id_lst.append(
                                             [missing_data['ID'], missing_data['Name']])
                                 except Exception as e:
-                                    print(
+                                    logger.exception(
                                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
 
                                 skip_insti = True
                                 break
                     if not skip_camp:
+
                         for key in camp_field_names:
                             if cache_column == key:
                                 # Assigning variable to call query:
@@ -1942,13 +1980,13 @@ class DataFile:
                                         id_lst.append(
                                             [missing_data['ID'], missing_data['Name']])
                                 except Exception as e:
-                                    print(
+                                    logger.exception(
                                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
 
                                 skip_camp = True
                                 break
                 except Exception as e:
-                    print(
+                    logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
                 run += 1
             place_id.update_place_ids(id_lst)

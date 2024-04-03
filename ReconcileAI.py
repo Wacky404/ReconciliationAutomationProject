@@ -30,13 +30,15 @@ class ReconcileAI:
                     municipality = str(ws_uasys['Y' + str(cell.row)].value)
                     state = str(ws_uasys['Z' + str(cell.row)].value)
                     if institution_name != ws_uasys['U' + str(cell_prev)].value and ws_uasys[
-                        'AF' + str(cell.row)].value is None:
-                        API_KEY = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
+                            'AF' + str(cell.row)].value is None:
+                        API_KEY = open(
+                            r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
                         openai.api_key = API_KEY
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
                             messages=[
-                                {"role": "system", "content": "You are a data analyst reconciling missing data."},
+                                {"role": "system",
+                                    "content": "You are a data analyst reconciling missing data."},
                                 {"role": "user",
                                  "content": "Don't include the question in your response, what is the date when"
                                             "Texas State University at San Marcos, TX founded?"},
@@ -54,7 +56,8 @@ class ReconcileAI:
                         )
                         reply_content = response.choices[0].message.content
                         if DataFile.has_numbers(reply_content):
-                            ws_uasys['AF' + str(cell.row)].value = str(reply_content)
+                            ws_uasys['AF' + str(cell.row)
+                                     ].value = str(reply_content)
                         else:
                             ws_uasys['AF' + str(cell.row)].value = 'NULL'
                         wb_uasys.save(raw_file)
@@ -64,8 +67,9 @@ class ReconcileAI:
                         ws_uasys['AF' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
             except Exception as e:
-                print(f"An exception of type {type(e).__name__} occurred in Insti. Details: {str(e)}")
-                print('Moving on to the next location')
+                logger.exception(
+                    f"An exception of type {type(e).__name__} occurred in Insti. Details: {str(e)}")
+                logger.debug('Moving on to the next location')
 
         for cell in ws_uasys['U']:
             try:
@@ -75,13 +79,15 @@ class ReconcileAI:
                     municipality = str(ws_uasys['Y' + str(cell.row)].value)
                     state = str(ws_uasys['Z' + str(cell.row)].value)
                     if institution_name != ws_uasys['U' + str(cell_prev)].value and ws_uasys[
-                        'AG' + str(cell.row)].value is None:
-                        API_KEY = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
+                            'AG' + str(cell.row)].value is None:
+                        API_KEY = open(
+                            r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
                         openai.api_key = API_KEY
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
                             messages=[
-                                {"role": "system", "content": "You are a data analyst reconciling missing data."},
+                                {"role": "system",
+                                    "content": "You are a data analyst reconciling missing data."},
                                 {"role": "user",
                                  "content": "Don't include the question in your response, When was this "
                                             "institution named Texas State University in San Marcos, TX?"},
@@ -100,7 +106,8 @@ class ReconcileAI:
                         )
                         reply_content = response.choices[0].message.content
                         if DataFile.has_numbers(reply_content):
-                            ws_uasys['AG' + str(cell.row)].value = str(reply_content)
+                            ws_uasys['AG' + str(cell.row)
+                                     ].value = str(reply_content)
                         else:
                             ws_uasys['AG' + str(cell.row)].value = 'NULL'
                         wb_uasys.save(raw_file)
@@ -110,8 +117,9 @@ class ReconcileAI:
                         ws_uasys['AG' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
             except Exception as e:
-                print(f"An exception of type {type(e).__name__} occurred in Insti. Details: {str(e)}")
-                print('Moving on to the next location')
+                logger.exception(
+                    f"An exception of type {type(e).__name__} occurred in Insti. Details: {str(e)}")
+                logger.debug('Moving on to the next location')
 
     @classmethod
     def ai_campuslocation(cls, wb_uasys, ws_uasys, raw_file):
@@ -123,13 +131,15 @@ class ReconcileAI:
                     municipality = str(ws_uasys['AV' + str(cell.row)].value)
                     state = str(ws_uasys['AW' + str(cell.row)].value)
                     if institution_name != ws_uasys['AP' + str(cell_prev)].value and ws_uasys[
-                        'BA' + str(cell.row)].value is None:
-                        API_KEY = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
+                            'BA' + str(cell.row)].value is None:
+                        API_KEY = open(
+                            r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
                         openai.api_key = API_KEY
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
                             messages=[
-                                {"role": "system", "content": "You are a data analyst reconciling missing data."},
+                                {"role": "system",
+                                    "content": "You are a data analyst reconciling missing data."},
                                 {"role": "user",
                                  "content": "Don't include the question in your response, what is the date when"
                                             "Texas State University at San Marcos, TX founded?"},
@@ -145,7 +155,8 @@ class ReconcileAI:
                         )
                         reply_content = response.choices[0].message.content
                         if DataFile.has_numbers(reply_content):
-                            ws_uasys['BA' + str(cell.row)].value = str(reply_content)
+                            ws_uasys['BA' + str(cell.row)
+                                     ].value = str(reply_content)
                         else:
                             ws_uasys['BA' + str(cell.row)].value = 'NULL'
                         wb_uasys.save(raw_file)
@@ -155,8 +166,9 @@ class ReconcileAI:
                         ws_uasys['BA' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
             except Exception as e:
-                print(f"An exception of type {type(e).__name__} occurred in Camp. Details: {str(e)}")
-                print('Moving on to the next location')
+                logger.exception(
+                    f"An exception of type {type(e).__name__} occurred in Camp. Details: {str(e)}")
+                logger.debug('Moving on to the next location')
 
         for cell in ws_uasys['AP']:
             try:
@@ -166,13 +178,15 @@ class ReconcileAI:
                     municipality = str(ws_uasys['AV' + str(cell.row)].value)
                     state = str(ws_uasys['AW' + str(cell.row)].value)
                     if institution_name != ws_uasys['AP' + str(cell_prev)].value and ws_uasys[
-                        'BB' + str(cell.row)].value is None:
-                        API_KEY = open(r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
+                            'BB' + str(cell.row)].value is None:
+                        API_KEY = open(
+                            r"C:\Users\Wayne\Work Stuff\Data Conversion\API Key.txt").read()
                         openai.api_key = API_KEY
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
                             messages=[
-                                {"role": "system", "content": "You are a data analyst reconciling missing data."},
+                                {"role": "system",
+                                    "content": "You are a data analyst reconciling missing data."},
                                 {"role": "user",
                                  "content": "Don't include the question in your response, When was this "
                                             "campus named Texas State University in San Marcos, TX?"},
@@ -191,7 +205,8 @@ class ReconcileAI:
                         )
                         reply_content = response.choices[0].message.content
                         if DataFile.has_numbers(reply_content):
-                            ws_uasys['BB' + str(cell.row)].value = str(reply_content)
+                            ws_uasys['BB' + str(cell.row)
+                                     ].value = str(reply_content)
                         else:
                             ws_uasys['BB' + str(cell.row)].value = 'NULL'
                         wb_uasys.save(raw_file)
@@ -201,5 +216,6 @@ class ReconcileAI:
                         ws_uasys['BB' + str(cell.row)].value = last_entry
                 wb_uasys.save(raw_file)
             except Exception as e:
-                print(f"An exception of type {type(e).__name__} occurred in Camp. Details: {str(e)}")
-                print('Moving on to the next location')
+                logger.exception(
+                    f"An exception of type {type(e).__name__} occurred in Camp. Details: {str(e)}")
+                logger.debug('Moving on to the next location')

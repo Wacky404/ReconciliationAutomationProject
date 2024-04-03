@@ -1,4 +1,5 @@
 from pprint import pprint
+from DataPipeline import logger
 import asyncio
 import requests
 import random
@@ -98,6 +99,7 @@ class NominatimIntegration:
                           ' ' + details['address']['road'])
             state_in_details: str = str(details['address']['state'])
             state_abbreviated: str = str()
+
             for state in NominatimIntegration.abbreviations:
                 if state_in_details == state:
                     state_abbreviated = str(
@@ -113,7 +115,7 @@ class NominatimIntegration:
             }
 
         except requests.exceptions.RequestException as e:
-            print(
+            logger.exception(
                 f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
             time.sleep(r)
             return None
