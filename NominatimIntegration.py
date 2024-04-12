@@ -1,6 +1,4 @@
-from pprint import pprint
 from log_util import logger
-import asyncio
 import requests
 import random
 import time
@@ -10,6 +8,7 @@ import json
 class NominatimIntegration:
 
     url: str = "https://nominatim.openstreetmap.org/search?"
+    url_status: str = "https://nominatim.openstreetmap.org/status"
     s = requests.session()
     abbreviations: dict = {
         "Alabama": "AL",
@@ -73,7 +72,7 @@ class NominatimIntegration:
 
     @staticmethod
     def query_structured(amenity=None, street=None, city=None, county=None,
-                         state=None, country='USA', postalcode=None, url=url, s=s):
+                         state=None, country='USA', postalcode=None, url=url, s=s, server= url_status) -> dict:
         """ queries the Nominatim api in a structured format to limit results """
         arguments = locals()
         params: dict = {}
@@ -87,7 +86,7 @@ class NominatimIntegration:
         r = random.randint(2, 5)
         time.sleep(r)
         try:
-            query_result = s.get(url=url, params=params, timeout=0.5)
+            query_result = s.get(url=url, params=params, timeout=1.5)
             details = json.loads(query_result.text)
             # If no result is found from query then details is empty
             if len(details) >= 1:
@@ -100,10 +99,11 @@ class NominatimIntegration:
             state_in_details: str = str(details['address']['state'])
             state_abbreviated: str = str()
 
-            for state in NominatimIntegration.abbreviations:
-                if state_in_details == state:
-                    state_abbreviated = str(
-                        NominatimIntegration.abbreviations[state])
+            if len(state_in_details) > 2 and state_in_details in NominatimIntegration.abbreviations.keys():
+                state_abbreviated = str(
+                    NominatimIntegration.abbreviations[state_in_details])
+            elif len(state_in_details) == 2:
+                state_abbreviated = state_in_details
 
             return {
                 'ID': details['place_id'],
@@ -118,10 +118,13 @@ class NominatimIntegration:
             logger.exception(
                 f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
             time.sleep(r)
+            query = s.get(url=server, params={'format': 'json'}, timeout=0.5)
+            response = json.loads(query.text)
+            logger.debug(f'{response}')
             return None
 
 
 if __name__ == "__main__":
-    print(NominatimIntegration.query_structured(amenity='UALR', street='2801 South University Avenue',
+    result = NominatimIntegration.query_structured(amenity='UALR', street='2801 South University Avenue',
                                                 city='Little Rock', county='Pulaski', state='AR',
-                                                postalcode='72204'))
+                                                postalcode='72204')

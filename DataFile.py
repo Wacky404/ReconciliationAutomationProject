@@ -150,6 +150,7 @@ class DataFile:
     @classmethod
     def reconcile_institution(cls, wb_uasys, ws_uasys, file_location, ws_data_grab, ws_nces_grab) -> None:
         # Inputs Autogen in field cells
+        logger.info('Inputting Autogen in field cells...')
         for cell in ws_uasys['Q']:
             if cell.row >= 3:
                 try:
@@ -158,6 +159,7 @@ class DataFile:
                 except:
                     logger.exception(f'Error with {cell.coordinate}')
         # Get inst_po_box_line for primary_institution_name from LocationName -> address
+        logger.info('Getting Institution PO_BOX for primary institution...')
         for cell in ws_uasys['U']:
             if cell.row >= 3:
                 primary_institution_name = str(cell.value).upper()
@@ -187,6 +189,7 @@ class DataFile:
                     logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # If INST_COUNTRY_CODE is blank then assign USA
+        logger.info('If Institution COUNTRY_CODE is blank then assign USA...')
         for cell in ws_uasys['AA']:
             if cell.row >= 3:
                 try:
@@ -196,6 +199,7 @@ class DataFile:
                     logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Move/delete substrings from inst_address_line_1 and moving them into respective column row
+        logger.info('Moving/Deleting substrings from Institution address line...')
         substrings = {
             'Ste',
             'Ste.',
@@ -247,6 +251,7 @@ class DataFile:
                                     inst_address_line_1)
                             break
         # If INST_ADDRESS_LINE_2 is blank then assign the cell N/A
+        logger.info('If Institution ADDRESS_LINE_2 is blank then assigning cell N/A...')
         for cell in ws_uasys['W']:
             if cell.row >= 3:
                 try:
@@ -256,6 +261,7 @@ class DataFile:
                     logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Check to see if institution is inactive/closed according to NCES database
+        logger.info('Checking to see if Institution is inactive/closed according to NCES database...')
         for cell in ws_uasys['U']:
             if cell.row >= 3:
                 organization_name = str(cell.value)
@@ -277,6 +283,7 @@ class DataFile:
                     logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # if INST_RECORD_SOURCE is blank then assign N/A
+        logger.info('If Institution RECORD_SOURCE is blank then assigning cell(s) N/A...')
         for cell in ws_uasys['AJ']:
             if cell.row >= 3:
                 try:
@@ -467,6 +474,7 @@ class DataFile:
     @classmethod
     def reconcile_governing(cls, wb_uasys, ws_uasys, file_location, abbrev, ws_data_grab, ws_nces_grab):
         # If GOVERNING_ORGANIZATION_ID is blank then assign the cell AutoGen
+        logger.info('If Governing ORGANIZATION_ID is blank then assign the cell AutoGen..')
         for cell in ws_uasys['A']:
             if cell.row >= 3:
                 try:
@@ -478,6 +486,7 @@ class DataFile:
         # Get primary institution name and compare it against cells in additional sites location name,
         # if match: access Parent
         # Name Cell and return cell data to populate Governing Org name of same row as primary institution name
+        logger.info('Getting primary Institution name and comparing it against cell in additional sites locations...')
         for cell in ws_uasys['U']:
             if cell.row >= 3:
                 institute_name = str(cell.value)
@@ -496,6 +505,7 @@ class DataFile:
                         logger.debug('Placed in governing: ' +
                                      str(ws_uasys['E' + str(cell.row)].value))
         # Get Governing_Organization_Name's DAPIP, OPE, and IPEDSID IDs from data_grab
+        logger.info('Getting Governing ORGANIZATION_NAMEs DAPID, OPE, and IPEDSID ids from data source...')
         for cell in ws_uasys['E']:
             if cell.row >= 3:
                 institution_govern = str(cell.value)
@@ -534,6 +544,7 @@ class DataFile:
                                     ws_uasys['D' +
                                              str(cell.row)].value = GOV_IPEDID
         # Get GOV address line 1, GOV_MUNICIPALITY, GOV postal code
+        logger.info('Getting Governing ADDRESS_LINE_1, Governing MUNICIPALITY, Governing POSTAL_CODE...')
         for cell in ws_uasys['B']:
             if cell.row >= 3:
                 institution_govern = str(cell.value)
@@ -693,6 +704,7 @@ class DataFile:
                             ws_uasys['I' + str(cell.row)].value = 'NULL'
                             ws_uasys['L' + str(cell.row)].value = 'NULL'
         # If GOV_STATE_REGION_SHORT is blank then assign worksheet state
+        logger.info('If Governing STATE_REGION_SHORT is blank then assign worksheet state...')
         for cell in ws_uasys['J']:
             if cell.row >= 3:
                 try:
@@ -702,6 +714,7 @@ class DataFile:
                     logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # If GOV_COUNTRY_CODE is blank then assign USA
+        logger.info('If Governing COUNTRY_CODE is blank then assign USA...')
         for cell in ws_uasys['K']:
             if cell.row >= 3:
                 try:
@@ -711,6 +724,7 @@ class DataFile:
                     logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Get GOV_PhoneNumberFull
+        logger.info('Getting Governing PhoneNumberFull...')
         for cell in ws_uasys['E']:
             if cell.row >= 3:
                 institution_govern = str(cell.value)
@@ -737,6 +751,7 @@ class DataFile:
                                 else:
                                     logger.debug('No phone number found')
         # Check to see if GOV_ORG is inactive/closed according to NCES database
+        logger.info('Checking to see if Governing ORGANIZATION is inactive/closed according to NCES database...')
         for cell in ws_uasys['E']:
             if cell.row >= 3:
                 institution_govern = str(cell.value)
@@ -751,6 +766,7 @@ class DataFile:
                             ws_uasys['O' + str(cell.row)
                                      ].value = institution_closed
         # If GOV_RECORD_SOURCE is blank then assign the cell N/A
+        logger.info('If Governing RECORD_SOURCE is blank then assign the cell N/A...')
         for cell in ws_uasys['P']:
             if cell.row >= 3:
                 try:
@@ -760,6 +776,7 @@ class DataFile:
                     logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # if not in data_grab then search nces_grab database
+        logger.info('If not in data source then search nces database...')
         for cell in ws_uasys['E']:
             if cell.row >= 3:
                 try:
@@ -806,6 +823,7 @@ class DataFile:
                     logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Move/delete substrings from GOV_ADDRESS_LINE_1 and moving them into respective column row
+        logger.info('Moving/deleting substrings from Governing ADDRESS_LINE_1...')
         substrings = {
             'Ste',
             'Ste.',
@@ -855,6 +873,7 @@ class DataFile:
                                 ws_uasys['F' + str(cell.row)].value = ADDRESS_LINE_1.strip(
                                     GOV_ADDRESS_LINE_2)
         # Move/delete substrings from GOV_POSTAL_CODE to GOV_MUNICIPALITY, GOV_MUNICIPALITY moves to GOV_ADDRESS_LINE_2
+        logger.info('Moving/deleting substrings from Governing POSTAL_CODE and Governing MUNICIPALITY...')
         for cell in ws_uasys['L']:
             if cell.row >= 3:
                 postal_code = str(cell.value).split()
@@ -898,6 +917,7 @@ class DataFile:
                             ws_uasys['L' + str(cell.row)].value = GOV_POSTAL_CODE.strip(
                                 GOV_STATE_REGION_SHORT)
         # Check to see if institution is inactive/closed according to NCES database
+        logger.info('Checking to see if Institution is inactive/closed according to NCES database...')
         for cell in ws_uasys['E']:
             if cell.row >= 3:
                 institution_govern = str(cell.value)
@@ -1107,6 +1127,7 @@ class DataFile:
     @classmethod
     def reconcile_campuslocation(cls, wb_uasys, ws_uasys, file_location, abbrev, ws_data_grab, ws_nces_grab):
         # If CAMPUS_LOCATION_ID is blank then assign the cell AutoGen
+        logger.info('If Campus LOCATION_ID is blank then assign the cell(s) AutoGen...')
         for cell in ws_uasys['AK']:
             try:
                 if cell.row >= 3:
@@ -1116,6 +1137,7 @@ class DataFile:
                 logger.exception(
                     f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Grabbing the missing cells in CAMP_OFFICIAL_INSTITUTION_NAME from PRIMARY_INSTITUTION_NAME
+        logger.info('Grabbing the missing cells in Campus OFFICIAL_INSTITUTION_NAME from PRIMARY_INSTITUTION_NAME...')
         for cell in ws_uasys['AP']:
             try:
                 if cell.row >= 3:
@@ -1128,6 +1150,7 @@ class DataFile:
                 logger.exception(
                     f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # for column AQ find the additional location for column AP and address for the location
+        logger.info('Finding the additional location for column AP and adrress for the location...')
         for cell in ws_uasys['AQ']:
             if cell.row >= 3:
                 try:
@@ -1170,6 +1193,7 @@ class DataFile:
                     logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Get CAMP_CAMPUS_NAME CAMP_OPED_ID and CAMP_IPED_ID from LocationName OpeId and IpedsUnitIds
+        logger.info('Getting CAMP_CAMPUS_NAME CAMP_OPED_ID and CAMP_IPED_ID from LocationName OpeId and IpedsUnitIds')
         for cell in ws_uasys['AQ']:
             try:
                 if cell.row >= 3:
@@ -1199,6 +1223,7 @@ class DataFile:
                 logger.exception(
                     f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # for any CAMP_CAMPUS_NAME ids that aren't populated by accred, find data in institution
+        logger.info('For any CAMP_CAMPUS_NAME ids that are not populated, find data in Institution...')
         for cell in ws_uasys['AQ']:
             if cell.row >= 3:
                 CAMP_CAMPUS_NAME = str(cell.value)
@@ -1222,6 +1247,7 @@ class DataFile:
                         logger.exception(
                             f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # If Campus dapid, opeid, ipedid is none then assign the cell NULL
+        logger.info('If Campus DAPID, OPEID, IPEDID is none then assign the cell(s) NULL...')
         for cell in ws_uasys['AL']:
             if cell.row >= 3:
                 opeid = ws_uasys['AM' + str(cell.row)].value
@@ -1237,6 +1263,7 @@ class DataFile:
                     logger.exception(
                         f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
         # Get CAMP_PO_BOX_LINE and CAMP_PhoneNumberFull from CAMP_CAMPUS_NAME against LocationName fields
+        logger.info('Getting Campus PO_BOX_LINE and Campus PhoneNumberFull from Campus CAMPUS_NAME against LocationName fields...')
         for cell in ws_uasys['AQ']:
             if cell.row >= 3:
                 organization_name = str(cell.value)
@@ -1378,6 +1405,7 @@ class DataFile:
                         ws_uasys['AZ' + str(cell.row)
                                  ].value = CAMP_PhoneNumberFull
         # Grabbing location data from Institution section to campus/location section for main campuses/one location
+        logger.info('Grabbing location data from Institution section to campus/location for main campuses/one location...')
         for cell in ws_uasys['AQ']:
             if cell.row >= 3:
                 if ws_uasys['AS' + str(cell.row)].value is None:
@@ -1398,6 +1426,7 @@ class DataFile:
                     ws_uasys['AY' + str(cell.row)].value = POSTAL_CODE
                     ws_uasys['AZ' + str(cell.row)].value = PhoneNumberFull
         # Move/delete substrings from CAMP_ADDRESS_LINE_1 and moving them into respective column row
+        logger.info('Moving/Deleteing substrings from Campus ADDRESS_LINE_1...')
         substrings = {
             'Ste',
             'Ste.',
@@ -1448,6 +1477,7 @@ class DataFile:
                                     GOV_ADDRESS_LINE_2)
                             break
         # Move/delete substrings from CAMP_ADDRESS_LINE_2
+        logger.info('Moving/Deleting substrings from Campus ADDRESS_LINE_2...')
         for cell in ws_uasys['AU']:
             if cell.row >= 3:
                 CAMP_PO_BOX_LINE = str(cell.value).split()
@@ -1507,6 +1537,7 @@ class DataFile:
                     logger.exception(
                         f"An exception of type {type(e).__name__} occurred, NULL assigned. Details: {str(e)}")
         # Check to see if campus is inactive/closed according to NCES database
+        logger.info('Check to see if campus is inactive/closed according to NCES database...')
         for cell in ws_uasys['AQ']:
             if cell.row >= 3:
                 organization_name = str(cell.value)
@@ -1522,6 +1553,7 @@ class DataFile:
                             ws_uasys['BD' + str(cell.row)
                                      ].value = institution_closed
         # If CAMPUS_RECORD_SOURCE is blank then assign the cell N/A
+        logger.info('If CAMPUS_RECORD_SOURCE is blank then assign the cell(s) N/A...')
         for cell in ws_uasys['BE']:
             if cell.row >= 3:
                 try:
