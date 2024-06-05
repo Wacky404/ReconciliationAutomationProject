@@ -1,4 +1,3 @@
-# TODO: fix save location of workbook, self.transf_file not working
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from difflib import SequenceMatcher
@@ -7,7 +6,6 @@ from NominatimIntegration import NominatimIntegration
 import place_id
 import os.path as osp
 import re
-import time
 
 
 class DataFile:

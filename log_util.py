@@ -5,7 +5,7 @@ import logging.config
 logger = logging.getLogger("Pipeline")
 
 
-def setup_logging(log_lvl_stdout: str ='INFO') -> None:
+def setup_logging(log_lvl_stdout='INFO') -> None:
     logging_config: dict = {
         "version": 1,
         "disable_existing_loggers": False,

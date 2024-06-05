@@ -1,4 +1,3 @@
-# TODO: debug program and implementing logging throughout the pipeline
 from DataFile import DataFile as df
 from ReconcileAI import ReconcileAI as ai
 from NominatimIntegration import NominatimIntegration as nomi
@@ -21,9 +20,10 @@ log_dir = osp.join(cwd, str('logs'))
 parser = argparse.ArgumentParser(
     prog='DataPipeline',
     description="Data Reconciliation and Cleansing of Educational Institution data, using Excel."
-    " Put your jobs that you want to be completed in a given pass in the input directory, Make sure "
-    " that the file(s) is named <State>.xlsx. Once the workload is done the ouptut will be in the output directory."
-    " The input directory will be cleared.",
+                " Put your jobs that you want to be completed in a given pass in the input directory, Make sure "
+                "that the file(s) is named <State>.xlsx. Once the workload is done the ouptut will be in the output "
+                "directory."
+                " The input directory will be cleared.",
 )
 
 parser.add_argument(
@@ -39,10 +39,10 @@ parser.add_argument(
     action='store',
     default='INFO',  # NOTSET=0, DEBUG=10, INFO=20, WARNING=30, ERROR=40, CRITICAL=50
     help='DEBUG: Detailed information for diagnosing problems | '
-    'INFO: Confirmation that things are working | '
-    'WARNING: Indication that something unexpected happened. Program still running | '
-    'ERROR: Not able to perform some function of the program | '
-    'CRITICAL: Serious error, program may be unable to continue running',
+         'INFO: Confirmation that things are working | '
+         'WARNING: Indication that something unexpected happened. Program still running | '
+         'ERROR: Not able to perform some function of the program | '
+         'CRITICAL: Serious error, program may be unable to continue running',
 )
 
 parser.add_argument(
@@ -51,7 +51,8 @@ parser.add_argument(
     action='store',
     default=int(2),
     # edit this help if you change user options
-    help='Reconcile --> 1 | Reconcile+Cleanse --> 2 | Cleanse --> 3 | Reconcile+AI+Cleanse --> 4 | AI --> 5 | Test N --> 6',
+    help='Reconcile --> 1 | Reconcile+Cleanse --> 2 | Cleanse --> 3 | Reconcile+AI+Cleanse --> 4 | AI --> 5 | Test N '
+         '--> 6',
 )
 
 # creates a NameSpace of arguments that were made
@@ -62,6 +63,19 @@ if isinstance(numeric_loglevel, int):
     setup_logging(numeric_loglevel)
 else:
     setup_logging()
+
+
+def configure() -> None:
+    """ Check/Create if directory exists that we will use to store excel workbooks to run on schedule """
+    for directory in [input_dir, output_dir, log_dir]:
+        try:
+            os.makedirs(name=directory, exist_ok=False)
+            print(f"Directory {directory} created")
+
+        except FileExistsError as e:
+            logger.exception(f"An exception of type {type(e).__name__} occurred. "
+                             f"Details: This is okay, output will save in existing {directory}.")
+
 
 if args.configure:
     configure()
@@ -85,18 +99,6 @@ if not osp.exists(log_dir):
     logger.critical(
         f"Dir: {log_dir} missing/denied; please check dir and/or run --configure if needed.")
     sys.exit()
-
-
-def configure() -> None:
-    """ Check/Create if directory exists that we will use to store excel workbooks to run on schedule """
-    for directory in [input_dir, output_dir, log_dir]:
-        try:
-            os.makedirs(name=directory, exist_ok=False)
-            print(f"Directory {directory} created")
-
-        except FileExistsError as e:
-            logger.exception(f"An exception of type {type(e).__name__} occurred. "
-                             f"Details: This is okay, output will save in existing {directory}.")
 
 
 def remove_fls(fls: list) -> None:
