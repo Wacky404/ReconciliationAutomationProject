@@ -4,10 +4,26 @@ from DataFile import DataFile
 from log_util import logger
 from openai import AzureOpenAI
 from azure.keyvault.secrets import SecretClient
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 import time
 import os
 import os.path as osp
+
+s1 = "ai-azureaiuasysazureopenai8888088879857786-Key1"
+s2 = "ai-azureaiuasysazureopenai8888088879857786-key2"
+base_api: str = "https://uasysazureopenai.openai.azure.com/"
+base_api_two: str = r"https://ai-azureaiuasysazureopenai756853076125.openai.azure.com/"
+base_api_three: str = str()
+api_version: str = "2023-12-01-preview"
+api_type: str = "azure"
+keyVaultName: str = "kv-azureaiu088879857786"
+
+os.environ['KEY_VAULT_NAME'] = keyVaultName
+os.environ['AZ_KEY_ONE'] = s1
+os.environ['AZ_KEY_TWO'] = s2
+os.environ['AZ_BASE_URL'] = base_api
+os.environ['API_TYPE'] = api_type
+os.environ['API_VERSION'] = api_version
 
 
 class ReconcileAI:
@@ -15,11 +31,11 @@ class ReconcileAI:
     assert keyVaultName is not None, f"Vault: {keyVaultName}"
     kv_url = f"https://{keyVaultName}.vault.azure.net"
     credential = DefaultAzureCredential()
-    vault_client = SecretClient(vault_url=kv_url, credential=credential)
-    s1 = "ai-azureaiuasysazureopenai8888088879857786-Key1"
-    s2 = "ai-azureaiuasysazureopenai8888088879857786-key2"
+    vault_client = SecretClient(vault_url=kv_url, queue_name="Test", credential=credential)
+    s1 = str(os.environ.get('AZ_KEY_ONE'))
+    s2 = str(os.environ.get('AZ_KEY_TWO'))
 
-    def __init__(self, raw_file, sheet_name, abbrev, vault_client=vault_client, s1=s1):
+    def __init__(self, raw_file, sheet_name, abbrev, vault_client=vault_client, s1=s1, s2=s2, credential=credential):
         self.raw_file = raw_file
         base_file: str = osp.basename(self.raw_file)
         transf_f: str = osp.join(osp.expanduser(
@@ -29,12 +45,14 @@ class ReconcileAI:
         self.abbrev = abbrev
         self.wb_uasys = load_workbook(raw_file)
         self.ws_uasys = self.wb_uasys[sheet_name]
-        retrieved_s = vault_client.get_secret(s1)
-        self.client = AzureOpenAI(azure_endpoint="https://uasysazureopenai.openai.azure.com/",
-                                  api_key=retrieved_s,
-                                  api_version="2024-02-01",
+        access = vault_client.get_secret(s1).value    # .value and .name important methods for inspection of obj
+        assert access is not None, access
+        self.client = AzureOpenAI(azure_endpoint=str(os.environ.get('AZ_BASE_URL')),
+                                  api_key=access,
+                                  # azure_ad_token_provider=credential,
+                                  api_version=str(os.environ.get('API_VERSION')),
                                   )
-        self.model = "GPT35Turbo"
+        self.model = "GPT35Turbo"   # this is the deployment name
 
     def ai_institution(self, wb_uasys, ws_uasys, raw_file):
         for cell in ws_uasys['U']:
