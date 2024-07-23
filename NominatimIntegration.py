@@ -72,7 +72,7 @@ class NominatimIntegration:
 
     @staticmethod
     def query_structured(amenity=None, street=None, city=None, county=None,
-                         state=None, country='USA', postalcode=None, url=url, s=s, server= url_status) -> dict:
+                         state=None, country='USA', postalcode=None, url=url, s=s, server=url_status) -> dict:
         """ queries the Nominatim api in a structured format to limit results """
         arguments = locals()
         params: dict = {}

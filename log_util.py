@@ -30,7 +30,7 @@ def setup_logging(log_lvl_stdout='INFO') -> None:
                 "level": "DEBUG",
                 "formatter": "detailed",
                 "filename": "logs/Pipeline.log",
-                "maxBytes": 5000000, # 5 mb
+                "maxBytes": 5000000,  # 5 mb
                 "backupCount": 5,
             },
         },
