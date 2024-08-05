@@ -9,6 +9,7 @@ import os.path as osp
 import os
 import sys
 import re
+import time
 
 os_home = osp.expanduser("~")
 cwd = os.getcwd()
@@ -165,6 +166,7 @@ if user_task == 1:
     logger.info(f'Data Operation: (1) has started...')
 
     for i in range(len(state)):
+        start = time.perf_counter()
         state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
         logger.info(f'Reconcile Starting: {state[i].sheet_name}')
@@ -181,6 +183,11 @@ if user_task == 1:
         print('Reconcile is done for ' + str(state[i].sheet_name) + '\n')
         logger.info(f'Reconcile Done: {state[i].sheet_name}')
 
+        end = time.perf_counter()
+        elasped = (end - start) * .000278
+
+        logger.info(f'Reconcile Done: {state[i].sheet_name}, Time Elasped: {elasped:.2f} hrs')
+
     print('Removing jobs from Scheduled Dir...')
     remove_fls(file_location)
     logger.info('Workload is completed.')
@@ -191,6 +198,7 @@ elif user_task == 2:
     logger.info(f'Data Operation: (2) has started...')
 
     for i in range(len(state)):
+        start = time.perf_counter()
         state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
         logger.info(f'Reconcile Starting: {state[i].sheet_name}')
@@ -218,6 +226,10 @@ elif user_task == 2:
         print('Clean is done for ' + str(state[i].sheet_name) + '\n')
         logger.info(f'Clean Done: {state[i].sheet_name}')
 
+        end = time.perf_counter()
+        elasped = (end - start) * .000278
+        logger.info(f'Reconcile Done: {state[i].sheet_name}, Time Elasped: {elasped:.2f} hrs')
+
     print('Removing jobs from Scheduled Dir...')
     remove_fls(file_location)
     logger.info('Workload is completed.')
@@ -228,6 +240,7 @@ elif user_task == 3:
     logger.info(f'Data Operation: (3) has started...')
 
     for i in range(len(state)):
+        start = time.perf_counter()
         state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
         print('Clean is starting for ' + str(state[i].sheet_name))
@@ -242,6 +255,10 @@ elif user_task == 3:
         print('Clean is done for ' + str(state[i].sheet_name) + '\n')
         logger.info(f'Clean Done: {state[i].sheet_name}')
 
+        end = time.perf_counter()
+        elasped = (end - start) * .000278
+        logger.info(f'Reconcile Done: {state[i].sheet_name}, Time Elasped: {elasped:.2f} hrs')
+
     print('Removing jobs from Scheduled Dir...')
     remove_fls(file_location)
     logger.info('Workload is completed.')
@@ -252,6 +269,7 @@ elif user_task == 4:
     logger.info(f'Data Operation: (4) has started...')
 
     for i in range(len(state)):
+        start = time.perf_counter()
         state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
         logger.info(f'Reconcile Starting: {state[i].sheet_name}')
@@ -289,6 +307,10 @@ elif user_task == 4:
         print('Clean is done for ' + str(state[i].sheet_name) + '\n')
         logger.info(f'Clean Done: {state[i].sheet_name}')
 
+        end = time.perf_counter()
+        elasped = (end - start) * .000278
+        logger.info(f'Reconcile Done: {state[i].sheet_name}, Time Elasped: {elasped:.2f} hrs')
+
     print('Removing jobs from Scheduled Dir...')
     remove_fls(file_location)
     logger.info('Workload is completed.')
@@ -299,6 +321,7 @@ elif user_task == 5:
     logger.info(f'Data Operation: (5) has started...')
 
     for i in range(len(state)):
+        start = time.perf_counter()
         state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
         print('AI is starting for ' + str(state[i].sheet_name))
@@ -316,6 +339,10 @@ elif user_task == 5:
         print('AI is done for ' + str(state[i].sheet_name) + '\n')
         logger.info(f'AI Done: {state[i].sheet_name}')
 
+        end = time.perf_counter()
+        elasped = (end - start) * .000278
+        logger.info(f'Reconcile Done: {state[i].sheet_name}, Time Elasped: {elasped:.2f} hrs')
+
     print('Removing jobs from Scheduled Dir...')
     remove_fls(file_location)
     logger.info('Workload is completed.')
@@ -326,14 +353,17 @@ elif user_task == 6:
     logger.info(f'Data Operation: (6) has started...')
 
     for i in range(len(state)):
+        start = time.perf_counter()
         state[i] = df(file_location[i], worksheet[i], abrev_state[i])
 
         logger.info(f'Reconcile Starting: {state[i].sheet_name}')
 
         state[i].reconcile_nominatim(state[i].wb_uasys, state[i].ws_uasys, state[i].transf_file,
                                      df.null_values, df.gov_field_names, df.insti_field_names, df.camp_field_names)
+        end = time.perf_counter()
+        elasped = (end - start) * .000278
 
-        logger.info(f'Reconcile Nominatim Done: {state[i].sheet_name}')
+        logger.info(f'Reconcile Nominatim Done: {state[i].sheet_name}, Time Elasped: {elasped:.2f} hrs')
 
     print('Removing jobs from Scheduled Dir...')
     remove_fls(file_location)
