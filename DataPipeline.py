@@ -1,13 +1,16 @@
-from DataFile import DataFile as df
-from ReconcileAI import ReconcileAI as ai
-from NominatimIntegration import NominatimIntegration as nomi
+from src.DataFile import DataFile as df
+from src.ReconcileAI import ReconcileAI as ai
+from src.NominatimIntegration import NominatimIntegration as nomi
+
 from pathlib import Path
-from log_util import logger, setup_logging
+from src.utils.log_util import logger, setup_logging
 import logging
+
 import argparse
 import os.path as osp
 import os
 import sys
+
 import re
 import time
 
@@ -113,7 +116,7 @@ def remove_fls(fls: list) -> None:
 
         except (FileNotFoundError, OSError) as e:
             logger.exception(f"An exception of type {type(e).__name__} occurred. "
-                             f"Details: {f} not found or is a directory")
+                             f"Details: {e} not found or is a directory")
 
 
 print("Scheduled Workload:")

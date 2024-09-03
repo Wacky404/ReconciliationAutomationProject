@@ -9,7 +9,7 @@ specific constraints of the data project.
 
 ## How to Use this Script
 
-The [DataFile.py](DataFile.py) file contains the base code and the [Datapipeline.py](DataPipeline.py) is the master file
+The [DataFile.py](src/DataFile.py) file contains the base code and the [Datapipeline.py](DataPipeline.py) is the master file
 that will run all script functionality. There are two files that contain the .xlsx databases of the forementioned
 sources.
 
@@ -17,7 +17,7 @@ sources.
 in the console/terminal.**
 
 - **If you are planning on changing any of the scripts functions or methods you can find the script's functionality/code in the
-[DataFile.py](DataFile.py) and other supporting files.**
+[DataFile.py](src/DataFile.py) and other supporting files.**
 
 ## Script Design
 
