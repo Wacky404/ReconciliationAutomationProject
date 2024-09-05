@@ -72,7 +72,7 @@ class NominatimIntegration:
 
     @staticmethod
     def query_structured(amenity=None, street=None, city=None, county=None,
-                         state=None, country='USA', postalcode=None, url=url, s=s, server=url_status) -> dict:
+                         state=None, country='USA', postalcode=None, url=url, s=s, server=url_status) -> dict | None:
         """ queries the Nominatim api in a structured format to limit results """
         arguments = locals()
         params: dict = {}
@@ -87,6 +87,10 @@ class NominatimIntegration:
         time.sleep(r)
         try:
             query_result = s.get(url=url, params=params, timeout=1.5)
+            if query_result.status_code == 403:
+                logger.debug(f"{query_result}")
+                logger.warning(f"Pipeline Recieved 403 response for Nominatim. Please address the issue. query_result TYPE: {type(query_result)}")
+                return None
             details = json.loads(query_result.text)
             # If no result is found from query then details is empty
             if len(details) >= 1:
