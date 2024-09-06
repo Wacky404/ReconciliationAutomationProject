@@ -10,6 +10,7 @@ class NominatimIntegration:
     url: str = "https://nominatim.openstreetmap.org/search?"
     url_status: str = "https://nominatim.openstreetmap.org/status"
     s = requests.session()
+    header = {'user-agent': 'EI-Lookup/1.0'}
     abbreviations: dict = {
         "Alabama": "AL",
         "Alaska": "AK",
@@ -72,7 +73,8 @@ class NominatimIntegration:
 
     @staticmethod
     def query_structured(amenity=None, street=None, city=None, county=None,
-                         state=None, country='USA', postalcode=None, url=url, s=s, server=url_status) -> dict | None:
+                         state=None, country='USA', postalcode=None, url=url, headers=header, s=s,
+                         server=url_status) -> dict | None:
         """ queries the Nominatim api in a structured format to limit results """
         arguments = locals()
         params: dict = {}
@@ -86,10 +88,12 @@ class NominatimIntegration:
         r = random.randint(2, 5)
         time.sleep(r)
         try:
-            query_result = s.get(url=url, params=params, timeout=1.5)
+            query_result = s.get(url=url, params=params,
+                                 headers=headers, timeout=1.5)
             if query_result.status_code == 403:
                 logger.debug(f"{query_result}")
-                logger.warning(f"Pipeline Recieved 403 response for Nominatim. Please address the issue. query_result TYPE: {type(query_result)}")
+                logger.warning(
+                    f"Pipeline Recieved 403 response for Nominatim. Please address the issue. query_result TYPE: {type(query_result)} STATUS: {query_result.status_code}")
                 return None
             details = json.loads(query_result.text)
             # If no result is found from query then details is empty
@@ -118,7 +122,7 @@ class NominatimIntegration:
                 'ZipCode': details['address']['postcode']
             }
 
-        except requests.exceptions.RequestException as e:
+        except (requests.exceptions.RequestException, json.decoder.JSONDecodeError) as e:
             logger.exception(
                 f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
             time.sleep(r)
@@ -130,5 +134,5 @@ class NominatimIntegration:
 
 if __name__ == "__main__":
     result = NominatimIntegration.query_structured(amenity='UALR', street='2801 South University Avenue',
-                                                city='Little Rock', county='Pulaski', state='AR',
-                                                postalcode='72204')
+                                                   city='Little Rock', county='Pulaski', state='AR',
+                                                   postalcode='72204')
