@@ -3,7 +3,7 @@ from src.utils.log_util import logger
 import pandas as pd
 import os.path
 
-file = os.path.join('..', 'data', str('placeidData.csv'))
+file = os.path.join(os.getcwd(), 'data', str('placeidData.csv'))
 if os.path.isfile(file):
     df_ids = pd.read_csv(file, index_col=0)
     logger.debug(f'{file} created dataframe')
@@ -16,8 +16,10 @@ def update_place_ids(lst: list) -> None:
     """ Adds the elements of the list into the existing DataFrame and saves """
     for index, value in enumerate(lst):
         try:
-            df_ids.iloc[-1] = value
+            df_ids.loc[-1] = value
         except Exception as e:
             logger.exception(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")
-
-    df_ids.to_csv(file)
+    try:
+        df_ids.to_csv(file)
+    except Exception as e:
+        logger.exception(f"An exception of type {type(e).__name__} occurred. Details: {str(e)}")

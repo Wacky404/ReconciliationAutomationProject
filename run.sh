@@ -1,18 +1,29 @@
 #!/usr/bin/env bash
 
-DIRECTORY_LOG="$(pwd)/logs/"
-DIRECTORY_SCH="~/Documents/Scheduled/"
+DIRECTORY_LOG=$(realpath "$(pwd)\logs" | tr '\\' '/')
+DIRECTORY_SCH=$(realpath "$HOME\Documents\Scheduled" | tr '\\' '/')
 
 setup() {
-    echo "python3 DataPipeline.py --configure"
+    if [[ ! -d "venv" ]]; then
+      python -m venv venv
+    fi
+    source venv/Scripts/activate
+    pip install -r requirements.txt
+    python3 DataPipeline.py --configure
 }
 
 if [[ ! -d "$DIRECTORY_LOG" ]]; then
-    echo "$(setup)"
+    setup
 fi
 
-if [ ! -d "$DIRECTORY_LOG" ] && [ "$(ls -A "$DIRECTORY_SCH")" ]; then
-    echo "python3 DataPipeline.py --task 4"
+if [[ -d "$DIRECTORY_SCH" && "$(find "$DIRECTORY_SCH" -mindepth 1 | head -n 1)" ]]; then
+    if [[ -d "venv" ]]; then
+      source venv/Scripts/activate
+    else
+      setup
+    fi
+    pip install -r requirements.txt
+    python DataPipeline.py --task 4
 else
-    echo "$DIRECTORY_SCH is empty. Add files then run again."
+    echo "$DIRECTORY_SCH is either does not exist or is empty. Create the Directory and/or add files then run again."
 fi
